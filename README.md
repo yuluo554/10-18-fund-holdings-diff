@@ -27,8 +27,8 @@
 
 ## 当前状态
 
-**M0–M3 已完成，M4（经理与规模）待开工。** 真实可用的有 `watch` / `window` / `fetch` / `diff` / `selftest`
-（M1 起含配置冻结门禁与两季合成快照；M2 起双通道持仓抓取与归一真实可用，产物落 `snapshots/`，不入仓）；其余子命令按契约返回退出码 **3**（该阶段尚未就绪），**不是故障**。
+**M0–M4 已完成，M5（季报与合规门禁）待开工。** 真实可用的有 `watch` / `window` / `fetch` / `diff` / `managers` / `scale` / `selftest`
+（M1 起含配置冻结门禁与两季合成快照；M2 起双通道持仓抓取与归一真实可用，M3 起五态 diff 真实可用，M4 起经理变更与规模变动真实可用，产物落 `snapshots/`，不入仓）；其余子命令按契约返回退出码 **3**（该阶段尚未就绪），**不是故障**。
 
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
@@ -36,7 +36,7 @@
 | M1 | 冻结配置包（法规化披露期限）+ 合成两季快照 + 真值 + eid 接入 | ✅ |
 | M2 | 双通道抓取（JSON 优先 / 页面回落）+ 归一 + 失败隔离 | ✅ |
 | M3 | 五态 Q/Q diff + 双口径 + 冲突清单 + 双季溯源 | ✅ |
-| M4 | 经理变更 + 规模变动 | ⬜ |
+| M4 | 经理变更 + 规模变动 | ✅ |
 | M5 | 季报三产物 + 合规硬门禁 | ⬜ |
 | M6 | GitHub 发布 | ⬜ |
 
@@ -89,7 +89,12 @@ py -3.12 -X utf8 -m funddiff diff --period 2026Q3                # 文本输出
 py -3.12 -X utf8 -m funddiff diff --period 2026Q3 --mode provider --json
 # 产物落 snapshots/q2026q3/diff.json（gitignore，不入仓）
 
-# 5) 冻结产物校验（CI 与本地同一份门禁）
+# 5) 经理变更与规模变动（四类事件判定 + 单位读表头 + 缺失≠0；M4）
+py -3.12 -X utf8 -m funddiff managers --period 2026Q3 --fund 990002      # 经理变更（in_period / prior_period / none / unparsed）
+py -3.12 -X utf8 -m funddiff scale --period 2026Q3 --json                # 规模六字段（0 申赎与缺失 null 严格区分）
+# 产物落 snapshots/q2026q3/managers.json 与 scale.json（gitignore，不入仓）
+
+# 6) 冻结产物校验（CI 与本地同一份门禁）
 py -3.12 -X utf8 tools/freeze_config.py --check
 py -3.12 -X utf8 tools/gen_fixtures.py --check
 ```
@@ -113,8 +118,8 @@ funddiff --version
 | `funddiff window [--as-of YYYY-MM-DD] [--json]` | 本期报告窗口 + 逐基金披露状态 | `0`；`2` 日期非法 |
 | `funddiff fetch [--fund CODE] [--period YYYYQn] [--json]` | 抓取并归一持仓（失败隔离；产物落 `snapshots/`） | `0` 成功（含部分失败，失败落 `failures.json`）；`1` 清单为空/基金不在清单；`4` 上游封锁（限频/验证码/登录墙）；`2` 参数非法 |
 | `funddiff diff [--mode provider\|computed] [--period YYYYQn] [--fund CODE] [--json]` | Q/Q 五态变动（与上季持仓对齐；产物落 `snapshots/q<period>/diff.json`） | `0` 成功；`1` 清单为空/基金不在清单/缺两季快照；`2` 口径或报告期非法 |
-| `funddiff managers [--fund CODE]` | 基金经理变更事件 | `3`（M4 实现） |
-| `funddiff scale [--fund CODE]` | 规模变动四条口径 | `3`（M4 实现） |
+| `funddiff managers [--fund CODE] [--period YYYYQn] [--json]` | 基金经理变更四类判定（区间来自冻结配置；`unparsed` 附页面快照，与无变更分开；产物落 `snapshots/q<period>/managers.json`） | `0` 成功；`1` 清单为空/基金不在清单/缺事件快照；`2` 报告期非法 |
+| `funddiff scale [--fund CODE] [--period YYYYQn] [--json]` | 规模六字段台账（单位读表头原样记录；`0` 真实零申赎与 `null` 缺失可区分；`no_prev_baseline` 时流量字段为 null 不补 0；产物落 `snapshots/q<period>/scale.json`） | `0` 成功；`1` 清单为空/基金不在清单/缺事件快照；`2` 报告期非法 |
 | `funddiff report [--period YYYYQn] [--out-dir DIR]` | 生成季报三产物 | `3`（M5 实现）；`1` 合规命中 |
 | `funddiff run [--as-of YYYY-MM-DD] [--out-dir DIR]` | 一条命令跑全流程 | `3`（M5 实现） |
 | `funddiff selftest [--json]` | 自检（可证伪） | `0` 通过；`1` 有检查失败；`2` 数据目录不可用（自检未运行） |

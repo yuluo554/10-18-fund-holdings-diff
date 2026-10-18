@@ -106,8 +106,23 @@ def main():
              2, "diff invalid mode", None),
             (["diff", "--period", "2026Q9", "--store", store, "--data-dir", str(DATA_DIR)],
              2, "diff invalid period", None),
-            (["managers"] + global_args, 3, "managers stub", None),
-            (["scale"] + global_args, 3, "scale stub", None),
+            # M4 真实跑：managers / scale 退役 stub（events 合成台账）
+            (["managers", "--period", "2026Q3", "--json"] + global_args, 0,
+             "managers real run", None),
+            (["managers", "--period", "2026Q3"] + global_args, 0,
+             "managers real run (text)", None),
+            (["scale", "--period", "2026Q3", "--json"] + global_args, 0,
+             "scale real run", None),
+            (["scale", "--period", "2026Q3"] + global_args, 0,
+             "scale real run (text)", None),
+            (["managers", "--store", str(tmp_path / "empty-wl2.json"),
+              "--data-dir", str(DATA_DIR)], 1, "managers empty watchlist", None),
+            (["scale", "--store", str(tmp_path / "empty-wl3.json"),
+              "--data-dir", str(DATA_DIR)], 1, "scale empty watchlist", None),
+            (["managers", "--period", "2026Q9"] + global_args, 2,
+             "managers invalid period", None),
+            (["scale", "--period", "2026Q9"] + global_args, 2,
+             "scale invalid period", None),
             (["report"] + global_args, 3, "report stub", None),
             (["run"] + global_args, 3, "run stub", None),
         ]
@@ -121,6 +136,34 @@ def main():
                 if payload["schema"] != "funddiff/diff@1" or payload["funds"][0]["fund_code"] != "990001":
                     print("[FAIL] diff real run 产物不符")
                     failures += 1
+            if label == "managers real run" and ok:
+                payload = json.loads(out)
+                if payload["schema"] != "funddiff/managers@1":
+                    print("[FAIL] managers real run 产物不符")
+                    failures += 1
+                else:
+                    by_code = {fund["fund_code"]: fund for fund in payload["funds"]}
+                    classes = {
+                        "990002": "in_period", "990004": "prior_period",
+                        "990005": "unparsed", "990001": "none"}
+                    for code_, expected in classes.items():
+                        records = by_code[code_]["managers"]
+                        actual = records[0]["change_class"] if records else "none"
+                        if actual != expected:
+                            print("[FAIL] managers 分类不符：%s %s != %s" % (
+                                code_, actual, expected))
+                            failures += 1
+            if label == "scale real run" and ok:
+                payload = json.loads(out)
+                if payload["schema"] != "funddiff/scale@1":
+                    print("[FAIL] scale real run 产物不符")
+                    failures += 1
+                else:
+                    by_code = {fund["fund_code"]: fund for fund in payload["funds"]}
+                    if by_code["990004"]["scale"]["subscribe"] != "0.00" or \
+                            by_code["990003"]["scale"]["subscribe"] is not None:
+                        print("[FAIL] scale 0/null 区分不符")
+                        failures += 1
             if label == "watch list --json" and ok:
                 payload = json.loads(out)
                 if [item["code"] for item in payload["funds"]] != ["990001"]:

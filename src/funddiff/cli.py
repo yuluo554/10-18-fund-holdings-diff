@@ -23,8 +23,6 @@ EXIT_UPSTREAM = 4
 EXIT_INTERNAL = 5
 
 STUB_STAGES = {
-    "managers": "M4",
-    "scale": "M4",
     "report": "M5",
     "run": "M5",
 }
@@ -104,10 +102,12 @@ def build_parser():
     managers = _common_options(subparsers.add_parser("managers", help="基金经理变更（M4）"))
     managers.add_argument("--fund", default=None, help="基金代码")
     managers.add_argument("--period", default=None, help="报告期 YYYYQn")
+    managers.add_argument("--json", action="store_true", help="输出机读 JSON")
 
     scale = _common_options(subparsers.add_parser("scale", help="规模变动（M4）"))
     scale.add_argument("--fund", default=None, help="基金代码")
     scale.add_argument("--period", default=None, help="报告期 YYYYQn")
+    scale.add_argument("--json", action="store_true", help="输出机读 JSON")
 
     report = _common_options(subparsers.add_parser("report", help="生成季报（M5）"))
     report.add_argument("--period", default=None, help="报告期 YYYYQn")
@@ -426,6 +426,147 @@ def cmd_diff(args):
     return EXIT_OK
 
 
+def cmd_managers(args):
+    """基金经理变更（M4）。
+
+    退出码契约：成功 0；清单空/基金不在清单/events 快照缺失 1；
+    报告期非法 2；台账与配置区间不一致 5。
+    """
+    from . import managers as managers_mod
+    from . import window
+
+    data_dir, config, store_file = _resolve(args)
+    report_period = args.period
+    if report_period is None:
+        window_info, _as_of = window.resolve_window(config, None)
+        report_period = window_info["report_period"]
+
+    entries = store.Watchlist(store_file).list_all()
+    if args.fund:
+        if not any(entry["code"] == args.fund for entry in entries):
+            return _fail("未在清单中：%s（先 watch add）" % args.fund, EXIT_GATE_FAILED)
+        codes = [args.fund]
+    else:
+        codes = [entry["code"] for entry in entries]
+
+    try:
+        result = managers_mod.build(data_dir, config, codes, report_period)
+    except managers_mod.ManagerError as exc:
+        return _fail(str(exc), EXIT_GATE_FAILED)
+    except window.WindowError as exc:
+        return _fail(str(exc), EXIT_USAGE)
+
+    out_file = paths.snapshots_dir(data_dir, config=config) / (
+        "q" + report_period.lower()) / "managers.json"
+    serialize.write_json(out_file, result)
+
+    if getattr(args, "json", False):
+        _emit(_json_text(result))
+        return EXIT_OK
+
+    labels = {
+        managers_mod.CLASS_IN_PERIOD: "本季内变更",
+        managers_mod.CLASS_PRIOR_PERIOD: "上季末已变更",
+        managers_mod.CLASS_UNPARSED: "未解析（页面快照已留证）",
+        managers_mod.CLASS_NONE: "无变更",
+    }
+    _emit("报告期：%s（%s ~ %s）" % (
+        result["report_period"], result["period_start"], result["period_end"]))
+    for fund in result["funds"]:
+        summary = fund["summary"]
+        state = labels[managers_mod.CLASS_IN_PERIOD] if summary[
+            managers_mod.CLASS_IN_PERIOD] else (
+            labels[managers_mod.CLASS_UNPARSED] if summary[
+                managers_mod.CLASS_UNPARSED] else (
+                labels[managers_mod.CLASS_PRIOR_PERIOD] if summary[
+                    managers_mod.CLASS_PRIOR_PERIOD] else labels[managers_mod.CLASS_NONE]))
+        _emit("%s  %s  %s" % (fund["fund_code"], fund["fund_name"] or "", state))
+        for record in fund["managers"]:
+            mark = labels[record["change_class"]]
+            if record["change_class"] == managers_mod.CLASS_UNPARSED:
+                _emit("  %s  raw=%s" % (mark, record.get("unparsed_reason") or ""))
+            else:
+                _emit("  %s  %s  变更日 %s  上任 %s" % (
+                    mark, record["name"] or "(姓名缺失)",
+                    record["change_date"], record["start"] or "null"))
+    totals = result["totals"]
+    _emit("合计：本季内 %d / 上季末 %d / 无变更 %d / 未解析 %d" % (
+        totals[managers_mod.CLASS_IN_PERIOD],
+        totals[managers_mod.CLASS_PRIOR_PERIOD],
+        totals[managers_mod.CLASS_NONE],
+        totals[managers_mod.CLASS_UNPARSED]))
+    _emit("产物：%s" % out_file)
+    return EXIT_OK
+
+
+def cmd_scale(args):
+    """规模变动（M4）。
+
+    退出码契约：成功 0；清单空/基金不在清单/events 快照缺失 1；
+    报告期非法 2；单位或数值口径漂移 5。
+    """
+    from . import scale as scale_mod
+    from . import window
+
+    data_dir, config, store_file = _resolve(args)
+    report_period = args.period
+    if report_period is None:
+        window_info, _as_of = window.resolve_window(config, None)
+        report_period = window_info["report_period"]
+
+    entries = store.Watchlist(store_file).list_all()
+    if args.fund:
+        if not any(entry["code"] == args.fund for entry in entries):
+            return _fail("未在清单中：%s（先 watch add）" % args.fund, EXIT_GATE_FAILED)
+        codes = [args.fund]
+    else:
+        codes = [entry["code"] for entry in entries]
+
+    try:
+        result = scale_mod.build(data_dir, config, codes, report_period)
+    except scale_mod.ScaleError as exc:
+        return _fail(str(exc), EXIT_GATE_FAILED)
+    except window.WindowError as exc:
+        return _fail(str(exc), EXIT_USAGE)
+
+    out_file = paths.snapshots_dir(data_dir, config=config) / (
+        "q" + report_period.lower()) / "scale.json"
+    serialize.write_json(out_file, result)
+
+    if getattr(args, "json", False):
+        _emit(_json_text(result))
+        return EXIT_OK
+
+    _emit("报告期：%s（%s ~ %s）" % (
+        result["report_period"], result["period_start"], result["period_end"]))
+    for fund in result["funds"]:
+        scale = fund["scale"]
+        units = scale["units_from_header"]
+        if scale["baseline"] == scale_mod.BASELINE_NO_PREV:
+            _emit("%s  %s  无上季基准（缺失记 null，不补 0）" % (
+                fund["fund_code"], fund["fund_name"] or ""))
+            continue
+        _emit(
+            "%s  %s  申购 %s%s / 赎回 %s / 份额 %s / 净资产 %s%s / 变动率 %s" % (
+                fund["fund_code"], fund["fund_name"] or "",
+                _display(scale["subscribe"]),
+                ("（%s）" % units["subscribe"]) if units.get("subscribe") else "",
+                _display(scale["redeem"]), _display(scale["shares"]),
+                _display(scale["net_assets"]),
+                ("（%s）" % units["net_assets"]) if units.get("net_assets") else "",
+                _display(scale["share_change_rate"])))
+    totals = result["totals"]
+    _emit("合计：有基准 %d / 无上季基准 %d / 零申赎 %d" % (
+        totals[scale_mod.BASELINE_AVAILABLE],
+        totals[scale_mod.BASELINE_NO_PREV], totals["zero_flow"]))
+    _emit("产物：%s" % out_file)
+    return EXIT_OK
+
+
+def _display(value):
+    return "null" if value is None else str(value)
+
+
 def _deadline_reason(window_info):
     reason = window_info.get("unverified_reason") or ""
     if reason.startswith("calendar_missing:"):
@@ -489,6 +630,8 @@ def main(argv=None):
         "window": cmd_window,
         "fetch": cmd_fetch,
         "diff": cmd_diff,
+        "managers": cmd_managers,
+        "scale": cmd_scale,
         "selftest": cmd_selftest,
     }
     if args.command in STUB_STAGES:
