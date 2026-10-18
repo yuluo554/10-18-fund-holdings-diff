@@ -1,0 +1,297 @@
+{
+  "funds": [
+    {
+      "entries": [
+        {
+          "basis": "computed",
+          "cur_ratio": "8.54",
+          "delta": null,
+          "prev_ratio": null,
+          "status": "新进",
+          "stock_code": "600005"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "8.45",
+          "delta": "0.00",
+          "prev_ratio": "8.45",
+          "status": "不变",
+          "stock_code": "600003"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "8.16",
+          "delta": "0.50",
+          "prev_ratio": "7.66",
+          "status": "加仓",
+          "stock_code": "600001"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "3.76",
+          "delta": "-0.50",
+          "prev_ratio": "4.26",
+          "status": "减仓",
+          "stock_code": "600002"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": null,
+          "delta": null,
+          "prev_ratio": "8.63",
+          "status": "退出",
+          "stock_code": "600004"
+        }
+      ],
+      "expected_holdings_status": "ok",
+      "fund_code": "990001",
+      "fund_name": "样例稳健股票",
+      "inputs": {
+        "cur": "q2026q3/holdings/990001.json",
+        "prev": "q2026q2/holdings/990001.json"
+      },
+      "summary": {
+        "不变": 1,
+        "减仓": 1,
+        "加仓": 1,
+        "待确认": 0,
+        "新进": 1,
+        "退出": 1
+      }
+    },
+    {
+      "entries": [
+        {
+          "basis": "computed",
+          "cur_ratio": "6.95",
+          "delta": "0.20",
+          "prev_ratio": "6.75",
+          "status": "加仓",
+          "stock_code": "600010"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "4.76",
+          "delta": "0.00",
+          "prev_ratio": "4.76",
+          "status": "不变",
+          "stock_code": "600011"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "4.52",
+          "delta": null,
+          "prev_ratio": null,
+          "status": "新进",
+          "stock_code": "600012"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": null,
+          "delta": null,
+          "prev_ratio": "7.91",
+          "status": "退出",
+          "stock_code": "600013"
+        }
+      ],
+      "expected_holdings_status": "ok",
+      "fund_code": "990002",
+      "fund_name": "样例平衡混合",
+      "inputs": {
+        "cur": "q2026q3/holdings/990002.json",
+        "prev": "q2026q2/holdings/990002.json"
+      },
+      "summary": {
+        "不变": 1,
+        "减仓": 0,
+        "加仓": 1,
+        "待确认": 0,
+        "新进": 1,
+        "退出": 1
+      }
+    },
+    {
+      "entries": [],
+      "expected_holdings_status": "empty",
+      "fund_code": "990003",
+      "fund_name": "样例 ETF 联接",
+      "inputs": {
+        "cur": "q2026q3/holdings/990003.json",
+        "prev": "q2026q2/holdings/990003.json"
+      },
+      "summary": {
+        "不变": 0,
+        "减仓": 0,
+        "加仓": 0,
+        "待确认": 0,
+        "新进": 0,
+        "退出": 0
+      }
+    },
+    {
+      "entries": [
+        {
+          "basis": "computed",
+          "cur_ratio": "9.24",
+          "delta": "0.30",
+          "prev_ratio": "8.94",
+          "status": "加仓",
+          "stock_code": "600030"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "8.46",
+          "delta": "0.00",
+          "prev_ratio": "8.46",
+          "status": "不变",
+          "stock_code": "600031"
+        }
+      ],
+      "expected_holdings_status": "ok",
+      "fund_code": "990004",
+      "fund_name": "样例海外 QDII",
+      "inputs": {
+        "cur": "q2026q3/holdings/990004.json",
+        "prev": "q2026q2/holdings/990004.json"
+      },
+      "summary": {
+        "不变": 1,
+        "减仓": 0,
+        "加仓": 1,
+        "待确认": 0,
+        "新进": 0,
+        "退出": 0
+      }
+    },
+    {
+      "entries": [
+        {
+          "anomaly": "invalid_stock_code",
+          "basis": "computed",
+          "cur_ratio": "8.65",
+          "delta": null,
+          "prev_ratio": null,
+          "status": "新进",
+          "stock_code": "ABC123"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "6.36",
+          "delta": "0.10",
+          "prev_ratio": "6.26",
+          "status": "加仓",
+          "stock_code": "600020"
+        },
+        {
+          "anomaly": "ratio_null",
+          "basis": "insufficient_data",
+          "cur_ratio": "5.05",
+          "delta": null,
+          "prev_ratio": null,
+          "status": "待确认",
+          "stock_code": "600021"
+        },
+        {
+          "anomaly": "change_type_missing",
+          "basis": "computed",
+          "cur_ratio": "3.99",
+          "delta": "0.00",
+          "prev_ratio": "3.99",
+          "status": "不变",
+          "stock_code": "600022"
+        }
+      ],
+      "expected_holdings_status": "ok",
+      "fund_code": "990005",
+      "fund_name": "样例异常股票",
+      "inputs": {
+        "cur": "q2026q3/holdings/990005.json",
+        "prev": "q2026q2/holdings/990005.json"
+      },
+      "summary": {
+        "不变": 1,
+        "减仓": 0,
+        "加仓": 1,
+        "待确认": 1,
+        "新进": 1,
+        "退出": 0
+      }
+    },
+    {
+      "entries": [],
+      "expected_holdings_status": "failed",
+      "fund_code": "990006",
+      "fund_name": "样例解析失败",
+      "inputs": {
+        "cur": "q2026q3/holdings/990006.json",
+        "prev": "q2026q2/holdings/990006.json"
+      },
+      "summary": {
+        "不变": 0,
+        "减仓": 0,
+        "加仓": 0,
+        "待确认": 0,
+        "新进": 0,
+        "退出": 0
+      }
+    },
+    {
+      "entries": [],
+      "expected_holdings_status": "failed",
+      "fund_code": "990007",
+      "fund_name": "样例网络失败",
+      "inputs": {
+        "cur": "q2026q3/holdings/990007.json",
+        "prev": "q2026q2/holdings/990007.json"
+      },
+      "summary": {
+        "不变": 0,
+        "减仓": 0,
+        "加仓": 0,
+        "待确认": 0,
+        "新进": 0,
+        "退出": 0
+      }
+    },
+    {
+      "entries": [
+        {
+          "basis": "computed",
+          "cur_ratio": "2.76",
+          "delta": "0.00",
+          "prev_ratio": "2.76",
+          "status": "不变",
+          "stock_code": "600061"
+        },
+        {
+          "basis": "computed",
+          "cur_ratio": "1.80",
+          "delta": "0.25",
+          "prev_ratio": "1.55",
+          "status": "加仓",
+          "stock_code": "600060"
+        }
+      ],
+      "expected_holdings_status": "ok",
+      "fund_code": "990008",
+      "fund_name": "样例待披露",
+      "inputs": {
+        "cur": "q2026q3/holdings/990008.json",
+        "prev": "q2026q2/holdings/990008.json"
+      },
+      "summary": {
+        "不变": 1,
+        "减仓": 0,
+        "加仓": 1,
+        "待确认": 0,
+        "新进": 0,
+        "退出": 0
+      }
+    }
+  ],
+  "prev_period": "2026Q2",
+  "report_period": "2026Q3",
+  "sample": "synthetic",
+  "schema": "funddiff/diff-truth@1",
+  "threshold": "0.10"
+}

@@ -1,0 +1,23 @@
+{
+  "fund_code": "990006",
+  "fund_name": "样例解析失败",
+  "managers": [],
+  "report_period": "2026Q2",
+  "sample": "synthetic",
+  "scale": {
+    "baseline": "available",
+    "net_assets": "34.46",
+    "raw_sha256": null,
+    "redeem": "1.15",
+    "report_period": "2026Q2",
+    "share_change_rate": "3.85%",
+    "shares": "27.12",
+    "source": "gmbd",
+    "subscribe": "2.99",
+    "units_from_header": {
+      "net_assets": "亿元",
+      "subscribe": "亿份"
+    }
+  },
+  "schema": "funddiff/events@1"
+}

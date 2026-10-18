@@ -1,0 +1,49 @@
+{
+  "available": true,
+  "reason": null,
+  "reports": [
+    {
+      "fundcode": "990001",
+      "report_send_date": "2026-10-20",
+      "title": "样例稳健股票2026年第3季度报告"
+    },
+    {
+      "fundcode": "990002",
+      "report_period": "2026Q3",
+      "report_send_date": "2026-10-20",
+      "title": "样例平衡混合2026年第3季度报告"
+    },
+    {
+      "fundcode": "990003",
+      "report_period": "2026Q3",
+      "report_send_date": "2026-10-21",
+      "title": "样例 ETF 联接2026年第3季度报告"
+    },
+    {
+      "fundcode": "990004",
+      "report_period": "2026Q3",
+      "report_send_date": "2026-10-22",
+      "title": "样例海外 QDII2026年第3季度报告"
+    },
+    {
+      "fundcode": "990005",
+      "report_period": "2026Q3",
+      "report_send_date": "2026-10-21",
+      "title": "样例异常股票2026年第3季度报告"
+    },
+    {
+      "fundcode": "990006",
+      "report_period": "2026Q3",
+      "report_send_date": "2026-10-23",
+      "title": "样例解析失败2026年第3季度报告"
+    },
+    {
+      "fundcode": "990007",
+      "report_period": "2026Q3",
+      "report_send_date": "2026-10-23",
+      "title": "样例网络失败2026年第3季度报告"
+    }
+  ],
+  "sample": "synthetic",
+  "schema": "funddiff/disclosure@1"
+}

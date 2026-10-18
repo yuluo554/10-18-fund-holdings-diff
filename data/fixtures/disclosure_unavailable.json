@@ -1,0 +1,7 @@
+{
+  "available": false,
+  "reason": "synthetic_network_failure",
+  "reports": [],
+  "sample": "synthetic",
+  "schema": "funddiff/disclosure@1"
+}

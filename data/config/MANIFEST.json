@@ -1,0 +1,11 @@
+{
+  "config_version": "1.0.0-m1",
+  "files": {
+    "app.json": {
+      "bytes": 5985,
+      "sha256": "9a6e332f5af7f1c9f60d4fdc4126f13456abc9315660b50e6954d6c042693371"
+    }
+  },
+  "generator": "tools/freeze_config.py",
+  "schema": "funddiff/config-manifest@1"
+}

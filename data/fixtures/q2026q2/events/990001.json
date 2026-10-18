@@ -1,0 +1,23 @@
+{
+  "fund_code": "990001",
+  "fund_name": "样例稳健股票",
+  "managers": [],
+  "report_period": "2026Q2",
+  "sample": "synthetic",
+  "scale": {
+    "baseline": "available",
+    "net_assets": "26.12",
+    "raw_sha256": null,
+    "redeem": "2.89",
+    "report_period": "2026Q2",
+    "share_change_rate": "-3.69%",
+    "shares": "14.55",
+    "source": "gmbd",
+    "subscribe": "2.87",
+    "units_from_header": {
+      "net_assets": "亿元",
+      "subscribe": "亿份"
+    }
+  },
+  "schema": "funddiff/events@1"
+}

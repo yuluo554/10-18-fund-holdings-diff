@@ -1,0 +1,45 @@
+{
+  "fund_code": "990008",
+  "fund_name": "样例待披露",
+  "fund_type": "股票型",
+  "period_end": "2026-09-30",
+  "report_period": "2026Q3",
+  "rows": [
+    {
+      "change_pct": "0.00",
+      "change_type": "不变",
+      "industry": "食品饮料",
+      "ratio": "2.76",
+      "raw": {
+        "change_pct": "0.00",
+        "change_type": "不变",
+        "ratio": "2.76%"
+      },
+      "stock_code": "600061",
+      "stock_name": "样例股票600061"
+    },
+    {
+      "change_pct": "0.25",
+      "change_type": "增持",
+      "industry": "机械设备",
+      "ratio": "1.80",
+      "raw": {
+        "change_pct": "0.25",
+        "change_type": "增持",
+        "ratio": "1.80%"
+      },
+      "stock_code": "600060",
+      "stock_name": "样例股票600060"
+    }
+  ],
+  "sample": "synthetic",
+  "schema": "funddiff/holdings@1",
+  "source": {
+    "channel": "json",
+    "endpoint": "FundMNInverstPosition",
+    "fetched_at": null,
+    "raw_sha256": null
+  },
+  "status": "ok",
+  "structural_note": null
+}

@@ -1,0 +1,141 @@
+{
+  "funds": [
+    {
+      "fund_code": "990001",
+      "inputs": {
+        "events": "q2026q3/events/990001.json"
+      },
+      "managers": [],
+      "scale": {
+        "baseline": "available",
+        "net_assets": "45.00",
+        "redeem": "0.80",
+        "share_change_rate": "1.35%",
+        "shares": "30.00",
+        "subscribe": "1.20"
+      }
+    },
+    {
+      "fund_code": "990002",
+      "inputs": {
+        "events": "q2026q3/events/990002.json"
+      },
+      "managers": [
+        {
+          "change_class": "in_period",
+          "change_date": "2026-08-15"
+        }
+      ],
+      "scale": {
+        "baseline": "available",
+        "net_assets": "39.38",
+        "redeem": "3.36",
+        "share_change_rate": "-7.24%",
+        "shares": "24.06",
+        "subscribe": "1.49"
+      }
+    },
+    {
+      "fund_code": "990003",
+      "inputs": {
+        "events": "q2026q3/events/990003.json"
+      },
+      "managers": [],
+      "scale": {
+        "baseline": "no_prev_baseline",
+        "net_assets": "6.20",
+        "redeem": null,
+        "share_change_rate": null,
+        "shares": "5.00",
+        "subscribe": null
+      }
+    },
+    {
+      "fund_code": "990004",
+      "inputs": {
+        "events": "q2026q3/events/990004.json"
+      },
+      "managers": [
+        {
+          "change_class": "prior_period",
+          "change_date": "2026-05-20"
+        }
+      ],
+      "scale": {
+        "baseline": "available",
+        "net_assets": "12.00",
+        "redeem": "0.00",
+        "share_change_rate": "0.00%",
+        "shares": "10.00",
+        "subscribe": "0.00"
+      }
+    },
+    {
+      "fund_code": "990005",
+      "inputs": {
+        "events": "q2026q3/events/990005.json"
+      },
+      "managers": [
+        {
+          "change_class": "unparsed"
+        }
+      ],
+      "scale": {
+        "baseline": "available",
+        "net_assets": "11.00",
+        "redeem": "0.40",
+        "share_change_rate": "1.27%",
+        "shares": "8.00",
+        "subscribe": "0.50"
+      }
+    },
+    {
+      "fund_code": "990006",
+      "inputs": {
+        "events": "q2026q3/events/990006.json"
+      },
+      "managers": [],
+      "scale": {
+        "baseline": "available",
+        "net_assets": "9.00",
+        "redeem": "0.10",
+        "share_change_rate": "1.69%",
+        "shares": "6.00",
+        "subscribe": "0.20"
+      }
+    },
+    {
+      "fund_code": "990007",
+      "inputs": {
+        "events": "q2026q3/events/990007.json"
+      },
+      "managers": [],
+      "scale": {
+        "baseline": "no_prev_baseline",
+        "net_assets": "5.50",
+        "redeem": null,
+        "share_change_rate": null,
+        "shares": "4.00",
+        "subscribe": null
+      }
+    },
+    {
+      "fund_code": "990008",
+      "inputs": {
+        "events": "q2026q3/events/990008.json"
+      },
+      "managers": [],
+      "scale": {
+        "baseline": "available",
+        "net_assets": "10.50",
+        "redeem": "0.20",
+        "share_change_rate": "1.44%",
+        "shares": "7.00",
+        "subscribe": "0.30"
+      }
+    }
+  ],
+  "report_period": "2026Q3",
+  "sample": "synthetic",
+  "schema": "funddiff/events-truth@1"
+}

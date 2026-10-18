@@ -1,0 +1,145 @@
+{
+  "dimensions": {
+    "anomaly": {
+      "items": {
+        "change_type_missing": {
+          "sampled": 1,
+          "total": 1
+        },
+        "invalid_stock_code": {
+          "sampled": 1,
+          "total": 1
+        },
+        "network_failed": {
+          "sampled": 1,
+          "total": 1
+        },
+        "page_parse_failed": {
+          "sampled": 1,
+          "total": 1
+        },
+        "ratio_null": {
+          "sampled": 1,
+          "total": 1
+        }
+      },
+      "note": "抽样覆盖、非穷举",
+      "sampled": 5,
+      "total": 5
+    },
+    "disclosure": {
+      "items": {
+        "已披露": {
+          "sampled": 7,
+          "total": 7
+        },
+        "待披露": {
+          "sampled": 1,
+          "total": 1
+        },
+        "无数据": {
+          "sampled": 1,
+          "total": 1
+        }
+      },
+      "note": "抽样覆盖、非穷举；无数据由 disclosure_unavailable.json 单独覆盖",
+      "sampled": 3,
+      "total": 3
+    },
+    "fund_type": {
+      "items": {
+        "ETF联接": {
+          "sampled": 1,
+          "total": 1
+        },
+        "QDII": {
+          "sampled": 2,
+          "total": 2
+        },
+        "混合型": {
+          "sampled": 2,
+          "total": 2
+        },
+        "股票型": {
+          "sampled": 3,
+          "total": 3
+        }
+      },
+      "note": "抽样覆盖、非穷举",
+      "sampled": 4,
+      "total": 4
+    },
+    "holding_change": {
+      "items": {
+        "不变": {
+          "sampled": 5,
+          "total": 5
+        },
+        "减仓": {
+          "sampled": 1,
+          "total": 1
+        },
+        "加仓": {
+          "sampled": 5,
+          "total": 5
+        },
+        "新进": {
+          "sampled": 3,
+          "total": 3
+        },
+        "退出": {
+          "sampled": 2,
+          "total": 2
+        }
+      },
+      "note": "抽样覆盖、非穷举",
+      "sampled": 5,
+      "total": 5
+    },
+    "manager": {
+      "items": {
+        "in_period": {
+          "sampled": 1,
+          "total": 1
+        },
+        "none": {
+          "sampled": 5,
+          "total": 5
+        },
+        "prior_period": {
+          "sampled": 1,
+          "total": 1
+        },
+        "unparsed": {
+          "sampled": 1,
+          "total": 1
+        }
+      },
+      "note": "抽样覆盖、非穷举",
+      "sampled": 4,
+      "total": 4
+    },
+    "scale": {
+      "items": {
+        "no_prev_baseline": {
+          "sampled": 2,
+          "total": 2
+        },
+        "正常变动": {
+          "sampled": 5,
+          "total": 5
+        },
+        "零申赎": {
+          "sampled": 1,
+          "total": 1
+        }
+      },
+      "note": "抽样覆盖、非穷举",
+      "sampled": 3,
+      "total": 3
+    }
+  },
+  "note": "抽样覆盖、非穷举",
+  "sample": "synthetic",
+  "schema": "funddiff/coverage@1"
+}

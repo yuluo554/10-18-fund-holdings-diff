@@ -3,13 +3,12 @@
 纪律：
 - 业务逻辑不读系统时钟（K4）：窗口由 --as-of 决定；缺省时才取当天并打印；
 - 披露状态三态严格区分：已披露 / 待披露 / 无数据；
-- 季度窗口值来自配置；未按法规原文核对的季度保留 unverified 标记并原样透出。
+- 披露截止日由法规规则 + 国务院节假日日历推导，配置不写死具体日期；
+- 所需年份的日历未登记时，截止日记 null + unverified，禁止近似冒充。
 """
 
 import datetime
 import re
-
-from .config import ConfigError
 
 QUARTER_ORDER = ("Q1", "Q2", "Q3", "Q4")
 
@@ -19,12 +18,17 @@ STATUS_NO_DATA = "无数据"
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
+# 防御性上限：15 个工作日绝不会越过一年；越过即说明配置或日历异常。
+_MAX_SPAN_DAYS = 366
+
 
 class WindowError(Exception):
     """日期或窗口参数非法。对应退出码 2。"""
 
 
 def parse_date(value):
+    if isinstance(value, datetime.date):
+        return value
     if not isinstance(value, str) or not _DATE_RE.match(value):
         raise WindowError("日期必须是 YYYY-MM-DD，实际为 %r" % (value,))
     try:
@@ -41,7 +45,10 @@ def _month_day(config, quarter):
 
 def _quarter_end(config, year, quarter):
     month, day = _month_day(config, quarter)
-    return datetime.date(year, month, day)
+    try:
+        return datetime.date(year, month, day)
+    except ValueError as exc:
+        raise WindowError("quarters.%s.period_end 非法：%s" % (quarter, exc))
 
 
 def period_for_date(config, day):
@@ -70,23 +77,76 @@ def previous_period(period):
     return "%d%s" % (year, QUARTER_ORDER[index - 1])
 
 
+def _is_workday(entry, day):
+    """调休上班日优先（周末也可上班）；法定假日与周末不计。"""
+    text = day.isoformat()
+    if text in entry.get("makeup_workdays", []):
+        return True
+    if text in entry.get("holidays", []):
+        return False
+    return day.weekday() < 5
+
+
+def _deadline(config, period_end):
+    """按法规规则推导截止日；日历缺年份时返回不可计算。"""
+    rule = config["disclosure_rule"]
+    count = rule["count"]
+    calendar = rule["calendar"]
+
+    day = period_end + datetime.timedelta(days=1)
+    remaining = count
+    used_years = []
+    while remaining > 0:
+        year_key = "%04d" % day.year
+        entry = calendar.get(year_key)
+        if entry is None:
+            return {
+                "disclosure_deadline": None,
+                "unverified": True,
+                "unverified_reason": "calendar_missing:%s" % year_key,
+                "calendar_years": used_years,
+            }
+        if year_key not in used_years:
+            used_years.append(year_key)
+        if _is_workday(entry, day):
+            remaining -= 1
+            if remaining == 0:
+                return {
+                    "disclosure_deadline": day.isoformat(),
+                    "unverified": False,
+                    "unverified_reason": None,
+                    "calendar_years": used_years,
+                }
+        day += datetime.timedelta(days=1)
+        if (day - period_end).days > _MAX_SPAN_DAYS:
+            return {
+                "disclosure_deadline": None,
+                "unverified": True,
+                "unverified_reason": "deadline_out_of_range",
+                "calendar_years": used_years,
+            }
+    raise AssertionError("unreachable")
+
+
 def window_for_period(config, period):
     year, quarter = split_period(period)
     period_end = _quarter_end(config, year, quarter)
     prev_end = _quarter_end(config, *_split_year_quarter(previous_period(period)))
     period_start = prev_end + datetime.timedelta(days=1)
 
-    entry = config["quarters"][quarter]
-    deadline_month, deadline_day = [int(part) for part in entry["disclosure_deadline"].split("-")]
-    deadline_year = year + 1 if deadline_month < period_end.month else year
-    deadline = datetime.date(deadline_year, deadline_month, deadline_day)
-
+    deadline = _deadline(config, period_end)
+    rule = config["disclosure_rule"]
     return {
         "report_period": period,
         "period_start": period_start.isoformat(),
         "period_end": period_end.isoformat(),
-        "disclosure_deadline": deadline.isoformat(),
-        "unverified": bool(entry.get("unverified", True)),
+        "disclosure_deadline": deadline["disclosure_deadline"],
+        "unverified": deadline["unverified"],
+        "unverified_reason": deadline["unverified_reason"],
+        "deadline_rule": rule["kind"],
+        "deadline_count": rule["count"],
+        "deadline_basis": "自季度结束次日起算；周末与法定节假日不计，调休上班日计入。",
+        "calendar_years": deadline["calendar_years"],
     }
 
 
@@ -104,19 +164,34 @@ def resolve_window(config, as_of=None):
     period = period_for_date(config, as_of_date)
     window = window_for_period(config, period)
     window["as_of"] = as_of_date.isoformat()
-    window["past_deadline"] = as_of_date > parse_date(window["disclosure_deadline"])
+    if window["disclosure_deadline"] is None:
+        window["past_deadline"] = None
+    else:
+        window["past_deadline"] = as_of_date > parse_date(window["disclosure_deadline"])
     return window, as_of_date
 
 
-def disclosure_status(reports_available, reports, fund_code, period):
+def disclosure_status(reports_available, reports, fund_code, period, as_of=None):
     """三态判定。
 
     reports_available=False 表示官方元数据不可用 → 无数据（不得与"待披露"合并）。
+    as_of 给出时按历史时点回放：只有 report_send_date <= as_of 才算已披露；
+    发送日缺失或非法时不能证明当时已披露，按"待披露"处理。
     """
     if not reports_available:
         return STATUS_NO_DATA
+    cutoff = parse_date(as_of) if as_of is not None else None
     for report in reports:
-        if report.get("fundcode") == fund_code and report.get("report_period") == period:
+        if report.get("fundcode") != fund_code or report.get("report_period") != period:
+            continue
+        if cutoff is None:
+            return STATUS_DISCLOSED
+        send_date = report.get("report_send_date")
+        try:
+            sent = parse_date(send_date)
+        except WindowError:
+            continue
+        if sent <= cutoff:
             return STATUS_DISCLOSED
     return STATUS_PENDING
 

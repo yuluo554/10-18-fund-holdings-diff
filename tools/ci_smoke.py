@@ -43,8 +43,31 @@ def run(args, expect, label, cwd=None):
     return status == "ok", out, err
 
 
+def run_tool(script, args, expect, label):
+    command = [sys.executable, str(ROOT / "tools" / script)] + args
+    proc = subprocess.run(
+        command,
+        cwd=str(ROOT),
+        env=_env(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    status = "ok" if proc.returncode == expect else "FAIL"
+    print("[%s] %s -> exit %d (expected %d)" % (status, label, proc.returncode, expect))
+    if status == "FAIL":
+        print("  stdout: %s" % proc.stdout.decode("utf-8", "replace").strip())
+        print("  stderr: %s" % proc.stderr.decode("utf-8", "replace").strip())
+    return proc.returncode == expect
+
+
 def main():
     failures = 0
+    for args, label in ((["--check"], "freeze_config --check"),
+                        (["--check"], "gen_fixtures --check")):
+        script = "freeze_config.py" if "freeze" in label else "gen_fixtures.py"
+        if not run_tool(script, args, 0, label):
+            failures += 1
+
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         store = str(tmp_path / "watchlist.json")

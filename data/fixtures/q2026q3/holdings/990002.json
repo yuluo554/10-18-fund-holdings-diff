@@ -1,0 +1,58 @@
+{
+  "fund_code": "990002",
+  "fund_name": "样例平衡混合",
+  "fund_type": "混合型",
+  "period_end": "2026-09-30",
+  "report_period": "2026Q3",
+  "rows": [
+    {
+      "change_pct": "0.20",
+      "change_type": "增持",
+      "industry": "医药生物",
+      "ratio": "6.95",
+      "raw": {
+        "change_pct": "0.20",
+        "change_type": "增持",
+        "ratio": "6.95%"
+      },
+      "stock_code": "600010",
+      "stock_name": "样例股票600010"
+    },
+    {
+      "change_pct": "0.00",
+      "change_type": "不变",
+      "industry": "电力设备",
+      "ratio": "4.76",
+      "raw": {
+        "change_pct": "0.00",
+        "change_type": "不变",
+        "ratio": "4.76%"
+      },
+      "stock_code": "600011",
+      "stock_name": "样例股票600011"
+    },
+    {
+      "change_pct": null,
+      "change_type": null,
+      "industry": "计算机",
+      "ratio": "4.52",
+      "raw": {
+        "change_pct": null,
+        "change_type": null,
+        "ratio": "4.52%"
+      },
+      "stock_code": "600012",
+      "stock_name": "样例股票600012"
+    }
+  ],
+  "sample": "synthetic",
+  "schema": "funddiff/holdings@1",
+  "source": {
+    "channel": "json",
+    "endpoint": "FundMNInverstPosition",
+    "fetched_at": null,
+    "raw_sha256": null
+  },
+  "status": "ok",
+  "structural_note": null
+}

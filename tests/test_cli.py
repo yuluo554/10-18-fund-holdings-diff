@@ -76,20 +76,48 @@ def test_window_text_output(capsys, store_file):
 def test_window_json_three_states(capsys, store_file):
     cli.main(["--store", store_file, "watch", "add", "990001", "--name", "甲"])
     cli.main(["--store", store_file, "watch", "add", "990002", "--name", "乙"])
-    cli.main(["--store", store_file, "watch", "add", "990003", "--name", "丙"])
+    cli.main(["--store", store_file, "watch", "add", "990008", "--name", "丙"])
     capsys.readouterr()
 
+    # 2026-10-18：Q3 快照最早发送日是 10-20，历史时点应全部“待披露”。
     code = cli.main(["--store", store_file, "--data-dir", str(DATA_DIR),
                      "window", "--as-of", "2026-10-18", "--json"])
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert code == 0
+    assert {item["disclosure"] for item in payload["funds"]} == {"待披露"}
+
+    # 2026-10-20：990001/990002 已发送，990008 仍无记录。
+    code = cli.main(["--store", store_file, "--data-dir", str(DATA_DIR),
+                     "window", "--as-of", "2026-10-20", "--json"])
     captured = capsys.readouterr()
     payload = json.loads(captured.out)
 
     assert code == 0
     states = {item["code"]: item["disclosure"] for item in payload["funds"]}
     assert states["990001"] == "已披露"
-    assert states["990002"] == "待披露"
-    assert states["990003"] == "待披露"
-    assert payload["totals"]["已披露"] == 1
+    assert states["990002"] == "已披露"
+    assert states["990008"] == "待披露"
+    assert payload["totals"]["已披露"] == 2
+    assert payload["totals"]["待披露"] == 1
+
+
+def test_window_no_data_when_snapshot_missing(capsys, store_file, tmp_path):
+    data_dir = tmp_path / "data"
+    (data_dir / "config").mkdir(parents=True)
+    source = DATA_DIR / "config" / "app.json"
+    (data_dir / "config" / "app.json").write_text(
+        source.read_text(encoding="utf-8"), encoding="utf-8")
+    cli.main(["--store", store_file, "watch", "add", "990001"])
+    capsys.readouterr()
+
+    code = cli.main(["--store", store_file, "--data-dir", str(data_dir),
+                     "window", "--as-of", "2026-10-20", "--json"])
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert code == 0
+    assert payload["funds"][0]["disclosure"] == "无数据"
+    assert payload["totals"]["无数据"] == 1
 
 
 def test_window_invalid_date_returns_2(capsys, store_file):

@@ -33,16 +33,36 @@ def test_window_bounds(cfg):
     assert as_of.isoformat() == "2026-10-18"
 
 
-def test_q3_is_verified_others_flagged(cfg):
-    q3 = window.window_for_period(cfg, "2026Q3")
-    assert q3["unverified"] is False
-    q1 = window.window_for_period(cfg, "2026Q1")
-    assert q1["unverified"] is True
+def test_deadlines_follow_workday_rule(cfg):
+    expected = {
+        "2025Q1": "2025-04-22",
+        "2025Q2": "2025-07-21",
+        "2025Q3": "2025-10-28",
+        "2025Q4": "2026-01-22",
+        "2026Q1": "2026-04-22",
+        "2026Q2": "2026-07-21",
+        "2026Q3": "2026-10-27",
+    }
+    for period, deadline in expected.items():
+        info = window.window_for_period(cfg, period)
+        assert info["disclosure_deadline"] == deadline, period
+        assert info["unverified"] is False
+        assert info["deadline_rule"] == "workdays_after_period_end"
+        assert info["deadline_count"] == cfg["disclosure_rule"]["count"]
+
+
+def test_missing_calendar_is_not_approximated(cfg):
+    q4 = window.window_for_period(cfg, "2026Q4")
+    assert q4["disclosure_deadline"] is None
+    assert q4["unverified"] is True
+    assert q4["unverified_reason"] == "calendar_missing:2027"
+    assert q4["calendar_years"] == []
 
 
 def test_deadline_rolls_into_next_year(cfg):
-    q4 = window.window_for_period(cfg, "2026Q4")
-    assert q4["disclosure_deadline"] == "2027-01-31"
+    q4 = window.window_for_period(cfg, "2025Q4")
+    assert q4["disclosure_deadline"] == "2026-01-22"
+    assert q4["calendar_years"] == ["2026"]
 
 
 def test_past_deadline_flag(cfg):
@@ -96,3 +116,32 @@ def test_summarize_counts_all_three():
     counts = window.summarize([window.STATUS_DISCLOSED, window.STATUS_PENDING,
                                window.STATUS_NO_DATA, window.STATUS_NO_DATA])
     assert counts == {"已披露": 1, "待披露": 1, "无数据": 2}
+
+
+def test_workday_rule_holiday_and_makeup():
+    import datetime
+
+    entry = {
+        "holidays": ["2025-10-01", "2025-10-02"],
+        "makeup_workdays": ["2025-09-28"],
+    }
+    assert window._is_workday(entry, datetime.date(2025, 9, 28)) is True  # 周日调休上班
+    assert window._is_workday(entry, datetime.date(2025, 10, 1)) is False  # 法定假日
+    assert window._is_workday(entry, datetime.date(2025, 10, 4)) is False  # 周六
+    assert window._is_workday(entry, datetime.date(2025, 10, 9)) is True  # 普通周四
+
+
+def test_disclosure_as_of_replays_history():
+    reports = [{
+        "fundcode": "990001",
+        "report_period": "2026Q3",
+        "report_send_date": "2026-10-20",
+    }]
+    assert window.disclosure_status(
+        True, reports, "990001", "2026Q3", as_of="2026-10-19") == window.STATUS_PENDING
+    assert window.disclosure_status(
+        True, reports, "990001", "2026Q3", as_of="2026-10-20") == window.STATUS_DISCLOSED
+    # 快照存在但发送日缺失：历史时点不能证明已披露
+    undated = [{"fundcode": "990001", "report_period": "2026Q3"}]
+    assert window.disclosure_status(
+        True, undated, "990001", "2026Q3", as_of="2026-12-31") == window.STATUS_PENDING

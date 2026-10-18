@@ -1,0 +1,23 @@
+{
+  "fund_code": "990008",
+  "fund_name": "样例待披露",
+  "managers": [],
+  "report_period": "2026Q3",
+  "sample": "synthetic",
+  "scale": {
+    "baseline": "available",
+    "net_assets": "10.50",
+    "raw_sha256": null,
+    "redeem": "0.20",
+    "report_period": "2026Q3",
+    "share_change_rate": "1.44%",
+    "shares": "7.00",
+    "source": "gmbd",
+    "subscribe": "0.30",
+    "units_from_header": {
+      "net_assets": "亿元",
+      "subscribe": "亿份"
+    }
+  },
+  "schema": "funddiff/events@1"
+}

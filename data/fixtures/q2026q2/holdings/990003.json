@@ -1,0 +1,19 @@
+{
+  "fund_code": "990003",
+  "fund_name": "样例 ETF 联接",
+  "fund_type": "ETF联接",
+  "period_end": "2026-06-30",
+  "report_period": "2026Q2",
+  "rows": [],
+  "sample": "synthetic",
+  "schema": "funddiff/holdings@1",
+  "source": {
+    "channel": "json",
+    "endpoint": "FundMNInverstPosition",
+    "fallback_reason": "no_stock_holdings",
+    "fetched_at": null,
+    "raw_sha256": null
+  },
+  "status": "empty",
+  "structural_note": "ETF 联接基金，结构上无股票持仓"
+}

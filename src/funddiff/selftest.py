@@ -10,7 +10,10 @@ import datetime
 import tempfile
 from pathlib import Path
 
-from . import compliance, config as config_module, serialize, store, window
+from . import compliance, config as config_module, frozen, serialize, store, window
+
+CONFIG_MANIFEST_SCHEMA = "funddiff/config-manifest@1"
+FIXTURES_MANIFEST_SCHEMA = "funddiff/fixtures-manifest@1"
 
 PASS = "PASS"
 FAIL = "FAIL"
@@ -109,6 +112,44 @@ def _check_disclosure_snapshot(data_dir):
     return True, "%d 条披露元数据（合成快照）" % len(disclosure["reports"])
 
 
+def _check_config_manifest(data_dir, config):
+    manifest_path = Path(data_dir) / "config" / frozen.MANIFEST_NAME
+    if not manifest_path.is_file():
+        return False, "配置 MANIFEST 缺失：%s" % manifest_path
+    try:
+        manifest = serialize.read_json(manifest_path)
+    except (OSError, ValueError) as exc:
+        return False, "配置 MANIFEST 不可读：%s" % exc
+    problems = frozen.verify_manifest(
+        Path(data_dir) / "config", manifest, CONFIG_MANIFEST_SCHEMA)
+    if manifest.get("config_version") != config.get("config_version"):
+        problems.append("config_version 与 app.json 不一致")
+    if problems:
+        return False, "; ".join(problems[:3])
+    return True, "%d 个配置文件与 SHA256 一致" % len(manifest.get("files", {}))
+
+
+def _check_fixtures_manifest(data_dir):
+    manifest_path = Path(data_dir) / "fixtures" / frozen.MANIFEST_NAME
+    if not manifest_path.is_file():
+        return False, "fixtures MANIFEST 缺失：%s" % manifest_path
+    try:
+        manifest = serialize.read_json(manifest_path)
+    except (OSError, ValueError) as exc:
+        return False, "fixtures MANIFEST 不可读：%s" % exc
+    problems = frozen.verify_manifest(
+        Path(data_dir) / "fixtures", manifest, FIXTURES_MANIFEST_SCHEMA)
+    if manifest.get("sample") != "synthetic":
+        problems.append("MANIFEST.sample 必须为 synthetic")
+    if manifest.get("rng") != "splitmix64":
+        problems.append("MANIFEST.rng 必须为 splitmix64")
+    if not isinstance(manifest.get("seed"), int):
+        problems.append("MANIFEST.seed 必须是整数")
+    if problems:
+        return False, "; ".join(problems[:3])
+    return True, "%d 个合成文件与 SHA256 一致" % len(manifest.get("files", {}))
+
+
 def _check_compliance(config):
     terms = config["compliance"]["forbidden_terms"]
     hits = compliance.scan_text("完全中性的句子。", terms)
@@ -160,6 +201,14 @@ def run(data_dir, config=None, store_file=None):
 
     if config is not None:
         checks.append(_check("config.validate", lambda: _check_config(config)))
+        checks.append(_check(
+            "config.manifest",
+            lambda: _check_config_manifest(data_dir, config) if data_dir else (None, "数据目录不可用"),
+        ))
+        checks.append(_check(
+            "fixtures.manifest",
+            lambda: _check_fixtures_manifest(data_dir) if data_dir else (None, "数据目录不可用"),
+        ))
     checks.extend([
         _check("serialize.determinism", _check_determinism),
         _check("serialize.atomic_write", _check_atomic_write),

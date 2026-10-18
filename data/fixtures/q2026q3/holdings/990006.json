@@ -1,0 +1,20 @@
+{
+  "error_kind": "parse_error",
+  "fund_code": "990006",
+  "fund_name": "样例解析失败",
+  "fund_type": "混合型",
+  "period_end": "2026-09-30",
+  "report_period": "2026Q3",
+  "rows": [],
+  "sample": "synthetic",
+  "schema": "funddiff/holdings@1",
+  "source": {
+    "channel": "page",
+    "endpoint": "jjcc",
+    "fallback_reason": "json_missing_fields",
+    "fetched_at": null,
+    "raw_sha256": null
+  },
+  "status": "failed",
+  "structural_note": null
+}

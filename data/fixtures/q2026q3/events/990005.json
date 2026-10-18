@@ -1,0 +1,34 @@
+{
+  "fund_code": "990005",
+  "fund_name": "样例异常股票",
+  "managers": [
+    {
+      "change_class": "unparsed",
+      "change_date": null,
+      "end": null,
+      "in_period": null,
+      "name": null,
+      "raw_text": "合成页面片段：无法解析的基金经理变动表",
+      "source": "jjjl",
+      "start": null
+    }
+  ],
+  "report_period": "2026Q3",
+  "sample": "synthetic",
+  "scale": {
+    "baseline": "available",
+    "net_assets": "11.00",
+    "raw_sha256": null,
+    "redeem": "0.40",
+    "report_period": "2026Q3",
+    "share_change_rate": "1.27%",
+    "shares": "8.00",
+    "source": "gmbd",
+    "subscribe": "0.50",
+    "units_from_header": {
+      "net_assets": "亿元",
+      "subscribe": "亿份"
+    }
+  },
+  "schema": "funddiff/events@1"
+}

@@ -27,13 +27,13 @@
 
 ## 当前状态
 
-**M0 骨架已完成，M1 数据先行待开工。** 真实可用的只有 `watch` / `window` / `selftest`；
-其余子命令按契约返回退出码 **3**（该阶段尚未就绪），**不是故障**。
+**M0 + M1 已完成，M2 抓取与归一待开工。** 真实可用的有 `watch` / `window` / `selftest`
+（M1 起含配置冻结门禁与两季合成快照）；其余子命令按契约返回退出码 **3**（该阶段尚未就绪），**不是故障**。
 
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
 | M0 | 骨架、退出码契约、确定性写盘、清单、窗口三态 | ✅ |
-| M1 | 冻结配置包 + 合成两季快照 + 真值 + eid 接入 | ⬜ |
+| M1 | 冻结配置包（法规化披露期限）+ 合成两季快照 + 真值 + eid 接入 | ✅ |
 | M2 | 双通道抓取（JSON 优先 / 页面回落）+ 归一 + 失败隔离 | ⬜ |
 | M3 | 五态 Q/Q diff + 双口径 + 冲突清单 + 双季溯源 | ⬜ |
 | M4 | 经理变更 + 规模变动 | ⬜ |
@@ -71,7 +71,7 @@ export FUNDDIFF_DATA_DIR=/path/to/10-18-fund-holdings-diff/data
 ## 快速开始
 
 ```bash
-# 1) 自检（可证伪；数据目录不可用时返回 2 并说明"自检未运行"，不会假装通过）
+# 1) 自检（可证伪；含配置包 / fixtures 的 MANIFEST 一致性检查）
 py -3.12 -X utf8 -m funddiff selftest
 
 # 2) 管理自选清单（纯本地，幂等）
@@ -80,9 +80,13 @@ py -3.12 -X utf8 -m funddiff watch add 990001 --name "样例基金甲"   # 重�
 py -3.12 -X utf8 -m funddiff watch list
 py -3.12 -X utf8 -m funddiff watch remove 990001
 
-# 3) 报告窗口与披露状态（已披露 / 待披露 / 无数据 三态）
+# 3) 报告窗口与披露状态（已披露 / 待披露 / 无数据 三态；--as-of 历史回放）
 py -3.12 -X utf8 -m funddiff window --as-of 2026-10-18
-py -3.12 -X utf8 -m funddiff window --as-of 2026-10-18 --json
+py -3.12 -X utf8 -m funddiff window --as-of 2026-10-20 --json
+
+# 4) 冻结产物校验（CI 与本地同一份门禁）
+py -3.12 -X utf8 tools/freeze_config.py --check
+py -3.12 -X utf8 tools/gen_fixtures.py --check
 ```
 
 安装后也可以直接用控制台脚本（两条通路等价，CI 与冒烟各跑一遍）：
@@ -137,8 +141,11 @@ py -3.12 -X utf8 -m pytest -q
 py -3.12 -X utf8 tools/ci_smoke.py
 ```
 
-`data/config/app.json` 是**冻结配置**：季度窗口、diff 口径与阈值、限频退避、合规词表都在这里，
-代码中不写第二份。改动需走 `tools/freeze_config.py`（M1 落地）重生成 + `--check`。
+`data/config/app.json` 是**冻结配置**：季度窗口、diff 口径与阈值、限频退避、合规词表、
+法规化披露期限（第十八条"十五个工作日" + 国务院节假日日历）都在这里，代码中不写第二份。
+改动需重跑 `tools/freeze_config.py` 重生成 MANIFEST；`--check` 逐文件 SHA256 校验，不符 exit 1。
+`data/fixtures/` 由 `tools/gen_fixtures.py`（splitmix64、固定 seed）生成，`--check` 做两层校验：
+MANIFEST 与冻结文件一致 + 临时重生成逐字节一致。**两者都是生成物，禁止手改。**
 
 ---
 

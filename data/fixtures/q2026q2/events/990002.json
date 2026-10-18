@@ -1,0 +1,23 @@
+{
+  "fund_code": "990002",
+  "fund_name": "样例平衡混合",
+  "managers": [],
+  "report_period": "2026Q2",
+  "sample": "synthetic",
+  "scale": {
+    "baseline": "available",
+    "net_assets": "43.25",
+    "raw_sha256": null,
+    "redeem": "0.32",
+    "report_period": "2026Q2",
+    "share_change_rate": "-1.89%",
+    "shares": "41.77",
+    "source": "gmbd",
+    "subscribe": "1.76",
+    "units_from_header": {
+      "net_assets": "亿元",
+      "subscribe": "亿份"
+    }
+  },
+  "schema": "funddiff/events@1"
+}

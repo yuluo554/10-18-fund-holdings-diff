@@ -1,0 +1,20 @@
+{
+  "error_kind": "timeout",
+  "fund_code": "990007",
+  "fund_name": "样例网络失败",
+  "fund_type": "QDII",
+  "period_end": "2026-09-30",
+  "report_period": "2026Q3",
+  "rows": [],
+  "sample": "synthetic",
+  "schema": "funddiff/holdings@1",
+  "source": {
+    "channel": "json",
+    "endpoint": "FundMNInverstPosition",
+    "error_kind": "timeout",
+    "fetched_at": null,
+    "raw_sha256": null
+  },
+  "status": "failed",
+  "structural_note": null
+}

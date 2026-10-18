@@ -185,12 +185,13 @@ def cmd_window(args):
     window_info, as_of_date = window.resolve_window(config, args.as_of)
 
     entries = store.Watchlist(store_file).list_all()
-    disclosure = eid.load_disclosure(data_dir)
+    disclosure = eid.load_disclosure(data_dir, period=window_info["report_period"])
 
     states = []
     for entry in entries:
         status = window.disclosure_status(
-            disclosure["available"], disclosure["reports"], entry["code"], window_info["report_period"]
+            disclosure["available"], disclosure["reports"], entry["code"],
+            window_info["report_period"], as_of=as_of_date.isoformat(),
         )
         states.append(status)
 
@@ -201,6 +202,7 @@ def cmd_window(args):
         "disclosure_source": {
             "available": disclosure["available"],
             "reason": disclosure["reason"],
+            "snapshot": disclosure.get("snapshot"),
         },
         "funds": [
             {"code": entry["code"], "name": entry.get("name"), "disclosure": status}
@@ -215,9 +217,11 @@ def cmd_window(args):
 
     _emit("报告期：%s（%s ~ %s）" % (
         window_info["report_period"], window_info["period_start"], window_info["period_end"]))
-    _emit("披露截止：%s%s" % (
-        window_info["disclosure_deadline"],
-        "（窗口值未经法规原文核对）" if window_info["unverified"] else ""))
+    if window_info["disclosure_deadline"] is None:
+        _emit("披露截止：无法计算（%s）" % _deadline_reason(window_info))
+    else:
+        _emit("披露截止：%s（季度结束后第 %d 个工作日）" % (
+            window_info["disclosure_deadline"], window_info["deadline_count"]))
     _emit("判断基准日：%s" % as_of_date.isoformat())
     if not disclosure["available"]:
         _emit("披露元数据不可用（%s）：全部基金记为「无数据」" % disclosure["reason"], sys.stderr)
@@ -229,6 +233,14 @@ def cmd_window(args):
     _emit("合计：已披露 %d / 待披露 %d / 无数据 %d" % (
         totals["已披露"], totals["待披露"], totals["无数据"]))
     return EXIT_OK
+
+
+def _deadline_reason(window_info):
+    reason = window_info.get("unverified_reason") or ""
+    if reason.startswith("calendar_missing:"):
+        year = reason.split(":", 1)[1]
+        return "缺少 %s 年国务院节假日安排，未作近似" % year
+    return "截止日规则超出可计算范围"
 
 
 def cmd_selftest(args):

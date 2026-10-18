@@ -1,0 +1,23 @@
+{
+  "fund_code": "990003",
+  "fund_name": "样例 ETF 联接",
+  "managers": [],
+  "report_period": "2026Q3",
+  "sample": "synthetic",
+  "scale": {
+    "baseline": "no_prev_baseline",
+    "net_assets": "6.20",
+    "raw_sha256": null,
+    "redeem": null,
+    "report_period": "2026Q3",
+    "share_change_rate": null,
+    "shares": "5.00",
+    "source": "gmbd",
+    "subscribe": null,
+    "units_from_header": {
+      "net_assets": "亿元",
+      "subscribe": "亿份"
+    }
+  },
+  "schema": "funddiff/events@1"
+}

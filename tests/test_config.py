@@ -30,9 +30,30 @@ def test_missing_required_key_raises(tmp_path):
         config_module.validate_config(cfg)
 
 
-def test_quarters_require_unverified_flag():
+def test_disclosure_rule_requires_count():
     cfg = load()
-    del cfg["quarters"]["Q1"]["unverified"]
+    del cfg["disclosure_rule"]["count"]
+    with pytest.raises(config_module.ConfigError):
+        config_module.validate_config(cfg)
+
+
+def test_disclosure_rule_kind_must_be_supported():
+    cfg = load()
+    cfg["disclosure_rule"]["kind"] = "fixed_date"
+    with pytest.raises(config_module.ConfigError):
+        config_module.validate_config(cfg)
+
+
+def test_disclosure_calendar_requires_official_notice():
+    cfg = load()
+    cfg["disclosure_rule"]["calendar"]["2026"]["notice"] = ""
+    with pytest.raises(config_module.ConfigError):
+        config_module.validate_config(cfg)
+
+
+def test_disclosure_calendar_rejects_bad_date():
+    cfg = load()
+    cfg["disclosure_rule"]["calendar"]["2026"]["holidays"].append("2026/10/01")
     with pytest.raises(config_module.ConfigError):
         config_module.validate_config(cfg)
 

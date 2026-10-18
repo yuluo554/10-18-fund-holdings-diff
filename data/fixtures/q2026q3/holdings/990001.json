@@ -1,0 +1,71 @@
+{
+  "fund_code": "990001",
+  "fund_name": "样例稳健股票",
+  "fund_type": "股票型",
+  "period_end": "2026-09-30",
+  "report_period": "2026Q3",
+  "rows": [
+    {
+      "change_pct": null,
+      "change_type": null,
+      "industry": "医药生物",
+      "ratio": "8.54",
+      "raw": {
+        "change_pct": null,
+        "change_type": null,
+        "ratio": "8.54%"
+      },
+      "stock_code": "600005",
+      "stock_name": "样例股票600005"
+    },
+    {
+      "change_pct": "0.00",
+      "change_type": "不变",
+      "industry": "食品饮料",
+      "ratio": "8.45",
+      "raw": {
+        "change_pct": "0.00",
+        "change_type": "不变",
+        "ratio": "8.45%"
+      },
+      "stock_code": "600003",
+      "stock_name": "样例股票600003"
+    },
+    {
+      "change_pct": "0.50",
+      "change_type": "增持",
+      "industry": "医药生物",
+      "ratio": "8.16",
+      "raw": {
+        "change_pct": "0.50",
+        "change_type": "增持",
+        "ratio": "8.16%"
+      },
+      "stock_code": "600001",
+      "stock_name": "样例股票600001"
+    },
+    {
+      "change_pct": "-0.50",
+      "change_type": "减持",
+      "industry": "医药生物",
+      "ratio": "3.76",
+      "raw": {
+        "change_pct": "-0.50",
+        "change_type": "减持",
+        "ratio": "3.76%"
+      },
+      "stock_code": "600002",
+      "stock_name": "样例股票600002"
+    }
+  ],
+  "sample": "synthetic",
+  "schema": "funddiff/holdings@1",
+  "source": {
+    "channel": "json",
+    "endpoint": "FundMNInverstPosition",
+    "fetched_at": null,
+    "raw_sha256": null
+  },
+  "status": "ok",
+  "structural_note": null
+}

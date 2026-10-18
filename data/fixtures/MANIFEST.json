@@ -1,0 +1,166 @@
+{
+  "files": {
+    "disclosure.json": {
+      "bytes": 2763,
+      "sha256": "8863bc20c4545794a4c123ff4a6574148900978ab774bc3fa771a12be330e5f6"
+    },
+    "disclosure_unavailable.json": {
+      "bytes": 145,
+      "sha256": "75a641b89889b061af43537a215931f41f8970d5f66db1446ef8960db414332a"
+    },
+    "q2026q2/disclosure.json": {
+      "bytes": 1502,
+      "sha256": "151994afc266d3844140c591b2f716cc7fbf2e592acbf7007e60d013a94fb0b7"
+    },
+    "q2026q2/events/990001.json": {
+      "bytes": 517,
+      "sha256": "1064bf5e983307954882e346ef850947493763e0a7616f79a76bbf1e47a6abb5"
+    },
+    "q2026q2/events/990002.json": {
+      "bytes": 517,
+      "sha256": "d31d4a4d9241ae1cac2ba552453d560007fde670c887a8802b84a90e68d1678b"
+    },
+    "q2026q2/events/990003.json": {
+      "bytes": 514,
+      "sha256": "7ce3e89bd1e6211d81fedf600a6f79a0d6d6ad13279a54604b7b2c6a27aa6e63"
+    },
+    "q2026q2/events/990004.json": {
+      "bytes": 790,
+      "sha256": "1baeb45ed589c96db2f7dc5f31b92e30e0a3cd5631444a9382a2d122d39cf779"
+    },
+    "q2026q2/events/990005.json": {
+      "bytes": 780,
+      "sha256": "f5e2515825756c640930534e6bb1b922cad1db59eb60a9147ebed27281b08304"
+    },
+    "q2026q2/events/990006.json": {
+      "bytes": 516,
+      "sha256": "6527b585ecd900a0e24d45b2ec5cfc4f01f6ad5a7c842bd85867676c5e233697"
+    },
+    "q2026q2/events/990007.json": {
+      "bytes": 517,
+      "sha256": "c23a0314df8f59fe97de524ea5ecb722717262563405219c5d8aa9fff7787345"
+    },
+    "q2026q2/events/990008.json": {
+      "bytes": 514,
+      "sha256": "efc8c8b7137050cfe43ca79e64560c8851a7eb94ba288370cfbd3892fc63cb8b"
+    },
+    "q2026q2/holdings/990001.json": {
+      "bytes": 1597,
+      "sha256": "323a6df1b286bc19411b776c65d5f524dd1f9fa0d756d986d9cffa8e9f0b986c"
+    },
+    "q2026q2/holdings/990002.json": {
+      "bytes": 1303,
+      "sha256": "2e5fb6543d4fd97c316f0821c33035bf76058c849536a063c3d590d707aeba8c"
+    },
+    "q2026q2/holdings/990003.json": {
+      "bytes": 488,
+      "sha256": "f98019e335033436205b8a95ee30b3998da7833bf338dbe1e0eab7fa9a2dc92f"
+    },
+    "q2026q2/holdings/990004.json": {
+      "bytes": 977,
+      "sha256": "4ffd4687142965318a081dc3765f0f43e22143ad73fee7fa1847ad4d4086b12d"
+    },
+    "q2026q2/holdings/990005.json": {
+      "bytes": 1292,
+      "sha256": "10c94b9589a4c7d737db021bb8b903d6d767612ab893c1b7fd60bcd1a919424c"
+    },
+    "q2026q2/holdings/990006.json": {
+      "bytes": 703,
+      "sha256": "e53d1583302f854f3b05cdb56f1145b729903abd240ec0f7134fe645ba7eb30f"
+    },
+    "q2026q2/holdings/990007.json": {
+      "bytes": 978,
+      "sha256": "3ac6cf046feef8075da678d103e46a2e65925cf7be1c4bbd1fe1559f94edf598"
+    },
+    "q2026q2/holdings/990008.json": {
+      "bytes": 1000,
+      "sha256": "45dafd433d859c04ebf1297cbfd4107df36a3695fe94f15f6aa06bed4423b800"
+    },
+    "q2026q3/disclosure.json": {
+      "bytes": 1299,
+      "sha256": "15cb7e267d2d24624595be23da22e47b5375f52b7fb6943d48cff230840350e7"
+    },
+    "q2026q3/events/990001.json": {
+      "bytes": 516,
+      "sha256": "6bd60582928bc8b44276eab332146df08bda93930b498272757dc2fb7b7f94a2"
+    },
+    "q2026q3/events/990002.json": {
+      "bytes": 792,
+      "sha256": "1c7947be8a75cbf2a17e4049ef7151edfef7c4521202e23ac6172031f183a56b"
+    },
+    "q2026q3/events/990003.json": {
+      "bytes": 513,
+      "sha256": "1af306e10d0649ca1eff39b8192f2d3f2a1bd1f35cca233a1b782f3f53826adb"
+    },
+    "q2026q3/events/990004.json": {
+      "bytes": 794,
+      "sha256": "9257805ae4eaf9279b8df088a41caa4eaa7e6914606bcb2cec72dab145be658c"
+    },
+    "q2026q3/events/990005.json": {
+      "bytes": 778,
+      "sha256": "106e487c4142a02774ca1b6067e28dbe9dec1280a28d5aafffc87d43eb79aa62"
+    },
+    "q2026q3/events/990006.json": {
+      "bytes": 514,
+      "sha256": "a17180ae6ca5a124b3ea66cd8dc66213745bdda892ffdd80273d1a63ab994c06"
+    },
+    "q2026q3/events/990007.json": {
+      "bytes": 514,
+      "sha256": "e34b97eff3e4414fd8d61d675481daf15b00c0cf90999dddb230acb34210cd5d"
+    },
+    "q2026q3/events/990008.json": {
+      "bytes": 512,
+      "sha256": "62605897e7e33bb96631a34d8093e6a651ecc18653ff4958f7197a6bd3a73019"
+    },
+    "q2026q3/holdings/990001.json": {
+      "bytes": 1641,
+      "sha256": "2af0f578f15b9844ec738a9e9758befc9cbca7838d57f7e3e444aff6731a6521"
+    },
+    "q2026q3/holdings/990002.json": {
+      "bytes": 1324,
+      "sha256": "1ff1fa15fc8b88c6cfd1c721e2d41caefbb227791317ee1989e96f43aabd4a17"
+    },
+    "q2026q3/holdings/990003.json": {
+      "bytes": 488,
+      "sha256": "d589348b8b689bddfdc58f0ff28937bd57a5f37515f5bfabcb757e0727738cbf"
+    },
+    "q2026q3/holdings/990004.json": {
+      "bytes": 1001,
+      "sha256": "ec7d31a016dda6f89abf2507e955f58eee23592bbe22df266a66e8fc351a9b0e"
+    },
+    "q2026q3/holdings/990005.json": {
+      "bytes": 1613,
+      "sha256": "78592da8eae9520504510599591d89d45c770cd4cc4d2df4476c7b04055fb813"
+    },
+    "q2026q3/holdings/990006.json": {
+      "bytes": 465,
+      "sha256": "bfc6bc2d479d4f17574af0d0f0995b592c28cd393f30fdd3f3cb4fbf45e4ab31"
+    },
+    "q2026q3/holdings/990007.json": {
+      "bytes": 456,
+      "sha256": "c748a54fb88e1074ee6168468841b4e525b9fd272502b406ddd4a8599e1ba7bd"
+    },
+    "q2026q3/holdings/990008.json": {
+      "bytes": 1024,
+      "sha256": "224e243e2c1c825ae5d81c69b451ea1459fdecceb527f6fb0034b78c4ee179a6"
+    },
+    "truth/coverage.json": {
+      "bytes": 2873,
+      "sha256": "59e83b9cb36237b2cbb61c4779038964cc53d55c13d5ede6f281d55928741c7f"
+    },
+    "truth/diff_truth.json": {
+      "bytes": 7153,
+      "sha256": "68ea03fb54842e54c7b7b1dee59e67947a3d1110cf050883fb76171ed04c84ed"
+    },
+    "truth/events_truth.json": {
+      "bytes": 3149,
+      "sha256": "f0f927ca1b19aa6fd6967aef38d2372b05d5518d3704adb96902e2aa9d2b1b11"
+    }
+  },
+  "generator": "tools/gen_fixtures.py",
+  "generator_version": "1",
+  "rng": "splitmix64",
+  "sample": "synthetic",
+  "schema": "funddiff/fixtures-manifest@1",
+  "seed": 20261018
+}

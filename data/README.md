@@ -161,14 +161,36 @@ GET http://eid.csrc.gov.cn/fund/disclose/indexDailyReportData.json
 
 ---
 
-## 二·补、仓库内合成快照清单（M0 现状）
+## 二·补、仓库内冻结产物清单（M1 现状）
 
 | 文件 | 内容 | 状态 |
 |---|---|---|
-| `data/config/app.json` | 冻结配置包（窗口 / diff 口径与阈值 / 限频退避 / 合规词表 / 来源注册表 / 排序约定） | ✅ M0 雏形，M1 冻结并加 MANIFEST |
-| `data/fixtures/disclosure.json` | 披露元数据**合成**快照（2 条，用于三态判定的基准样本） | ✅ M0，M1 由生成器产出并纳入 MANIFEST |
+| `data/config/app.json` | 冻结配置包（窗口 / diff 口径与阈值 / 限频退避 / 合规词表 / 来源注册表 / 排序约定 / **法规化披露期限**） | ✅ M1 冻结 |
+| `data/config/MANIFEST.json` | 配置包清单（逐文件 SHA256 + config_version） | ✅ M1，`tools/freeze_config.py` 生成 |
+| `data/fixtures/MANIFEST.json` | fixtures 清单（逐文件 SHA256 + generator + seed + rng） | ✅ M1 |
+| `data/fixtures/q2026q2/`、`q2026q3/` | 两季合成快照：`holdings/<code>.json`、`events/<code>.json`、`disclosure.json` | ✅ M1 |
+| `data/fixtures/truth/diff_truth.json` | diff 真值（输入指针 + 期望状态 + summary；**禁止 `observed_*` 字段**，可由输入独立复算） | ✅ M1 |
+| `data/fixtures/truth/events_truth.json` | 经理 / 规模期望 | ✅ M1 |
+| `data/fixtures/truth/coverage.json` | 覆盖矩阵（六维，各含 total/sampled，note=抽样覆盖、非穷举） | ✅ M1 |
+| `data/fixtures/disclosure.json` | 两季聚合披露快照（15 条） | ✅ M1 |
+| `data/fixtures/disclosure_unavailable.json` | "无数据"态单独覆盖（available=false） | ✅ M1 |
 
 **全部为 `sample: synthetic`**，不对应任何真实基金，不含任何真实抓取响应。
+
+### 2.1 合成快照覆盖矩阵（M1 落地）
+
+| 维度 | 覆盖值 | 样本 |
+|---|---|---|
+| 持仓变动 | 新进 / 退出 / 加仓 / 减仓 / 不变 | 每类 ≥1（990001 单基金五态齐备） |
+| 经理状态 | in_period / prior_period / none / unparsed | 各 ≥1（990002、990004、多数 none、990005） |
+| 规模状态 | 正常变动 / no_prev_baseline / 期间零申赎（真实 `"0.00"`，非 null） | 各 ≥1（990003、990007 为 no_prev_baseline；990004 零申赎） |
+| 基金类型 | 股票型 / 混合型 / ETF 联接（status=empty）/ QDII（industry=null） | 各 ≥1 |
+| 异常 | ratio=null、stock_code 非法、change_type 缺失、页面解析失败、网络失败 | 各 ≥1（集中在 990005/990006/990007） |
+| 披露三态 | 已披露 / 待披露 / 无数据 | 2026Q2 8 条、2026Q3 7 条、990008 待披露、unavailable 快照覆盖无数据 |
+
+生成器：`tools/gen_fixtures.py`（自研 splitmix64、seed=20261018、禁 stdlib random /
+set 迭代序 / 系统时钟；产物无时间戳）。校验：`--check` 两层（MANIFEST SHA256 一致 +
+临时重生成逐字节一致）。
 
 ---
 
@@ -209,10 +231,18 @@ GET http://eid.csrc.gov.cn/fund/disclose/indexDailyReportData.json
 ### 4.2 季报窗口定义
 
 - 报告期：`Q1 → 03-31`、`Q2 → 06-30`、`Q3 → 09-30`、`Q4 → 12-31`（**报告期截止日**）；
-- 披露窗口：**Q3 报告期截止 9/30、披露截止 10 月底**（题面给定的制度事实，与本项目实测到的"Q3 报告在 10 月内陆续发布"一致）；
-- ⬜ **待核**：Q1 / Q2 / Q4 对应的法定披露期限（工作日起算方式）须在实现前按《公开募集证券投资基金信息披露管理办法》原文核对后写进配置。**本文件不在未核对时给出天数，也不把推测写成规则**；
-- 「本期报告窗口」= 目标报告期 + 其披露截止日，**写入配置**；未核实的季度窗口配置值必须标注 `unverified: true`；
-- **`--as-of` 语义**：把工具固定在指定日期上判断披露状态与窗口，**不读系统时钟做隐式判断**；缺省 `--as-of` 时取系统日期但**在报告中打印实际使用的日期**。
+- **法定披露期限（✅ 已按法规原文核对，2026-10-18）**：《公开募集证券投资基金信息披露管理办法》
+  **第十八条**：基金管理人应当在**季度结束之日起十五个工作日内**编制完成基金季度报告并登载。
+  因此配置不再写死"某季截止到某月某日"，而是记录规则 `workdays_after_period_end` + `count=15` +
+  逐年国务院节假日日历（含调休上班日），截止日由程序推导；
+- 已核对结论：2025Q1→2025-04-22、2025Q2→2025-07-21、2025Q3→2025-10-28、2025Q4→2026-01-22、
+  2026Q1→2026-04-22、2026Q2→2026-07-21、2026Q3→2026-10-27；
+- ⬜ **2026Q4 截止日不可计算**：需要 2027 年国务院节假日通知（尚未发布/未核对），
+  程序输出 `disclosure_deadline: null + unverified`，**禁止用近似值冒充**；
+- 「本期报告窗口」= 目标报告期 + 程序推导的披露截止日；**配置里不写固定日期**；
+- **`--as-of` 语义**：把工具固定在指定日期上判断披露状态与窗口，**不读系统时钟做隐式判断**；
+  历史回放时只有 `report_send_date <= as_of` 的记录才算"当时已披露"；缺省 `--as-of` 时取系统日期
+  但**在报告中打印实际使用的日期**。
 - 「本季内变更」= 变更日期 ∈ `[报告期起始, 报告期截止]`；`报告期起始` = 上一报告期截止日的次日。
 
 ### 4.3 限频与退避
@@ -241,3 +271,16 @@ GET http://eid.csrc.gov.cn/fund/disclose/indexDailyReportData.json
 - 台账排序：基金代码升序 → 本季占净值比降序 → 股票代码升序；
 - JSON 输出：键序固定、浮点按统一精度序列化；
 - 同一输入两次运行的 `report.md` / `report.html` / `report_data.json` **字节一致**（时间戳类字段除外，须单独列明并固定格式）。
+
+---
+
+## 五、待核对项（不得用确定语气落库）
+
+| 项 | 现状 | 处置 |
+|---|---|---|
+| 2026Q4 披露期限 | 需要 2027 年国务院节假日通知 | 截止日记 `null + unverified`，CLI 原样透出"无法计算"；通知发布后补日历并重跑 freeze_config |
+| 2027 年节假日日历 | 通知未发布/未核对 | 同上；补日历属配置变更，必须重冻结 + `--check` |
+| `gmbd` 单位在不同基金类型上的差异 | 仅见"亿份/亿元"样本 | 实现读表头；遇到新单位记入覆盖表，不猜换算 |
+| `jjjl` 页面结构调整 | 仅基准日样本 | 解析失败落 `unparsed` + 快照，不猜 |
+| 东财 ToS 条款原文 | 条款随站点更新 | README 引用时注明"以站点当前条款为准" |
+| 巨潮栏目恢复时间 | 2026-10-01~10-17 为 0 条 | 只作备用；恢复后也不作主源 |
