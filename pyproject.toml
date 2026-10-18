@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "funddiff"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "基金季报持仓变动监控：自选清单 + Q/Q 持仓 diff + 经理变更 + 规模变动 + 本地季报"
 readme = "README.md"
 requires-python = ">=3.8"
