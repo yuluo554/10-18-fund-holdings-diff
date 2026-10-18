@@ -23,7 +23,6 @@ EXIT_UPSTREAM = 4
 EXIT_INTERNAL = 5
 
 STUB_STAGES = {
-    "fetch": "M2",
     "diff": "M3",
     "managers": "M4",
     "scale": "M4",
@@ -94,6 +93,7 @@ def build_parser():
     fetch.add_argument("--fund", default=None, help="基金代码；缺省为整份清单")
     fetch.add_argument("--period", default=None, help="报告期 YYYYQn")
     fetch.add_argument("--as-of", default=None, help="判断基准日 YYYY-MM-DD")
+    fetch.add_argument("--json", action="store_true", help="输出机读 JSON")
 
     diff_cmd = _common_options(subparsers.add_parser("diff", help="Q/Q 持仓变动（M3）"))
     diff_cmd.add_argument("--mode", choices=["provider", "computed"], default=None,
@@ -235,6 +235,122 @@ def cmd_window(args):
     return EXIT_OK
 
 
+def cmd_fetch(args):
+    """抓取并归一持仓（M2）。
+
+    退出码契约：成功 0；限频/验证码/登录墙等上游拒绝 4；
+    全部失败但非封锁类 0（失败隔离：单只失败不影响其余，失败落台账）。
+    产物落 snapshots/（gitignore，永不入仓）。
+    """
+    from . import eid, normalize, window
+    from .net import eastmoney
+    from .net.http import Fetcher
+
+    data_dir, config, store_file = _resolve(args)
+    window_info, _as_of = window.resolve_window(config, args.as_of)
+    report_period = args.period or window_info["report_period"]
+    try:
+        window.parse_period(report_period)
+    except window.WindowError as exc:
+        return _fail(str(exc), EXIT_USAGE)
+
+    entries = store.Watchlist(store_file).list_all()
+    if args.fund:
+        if not any(entry["code"] == args.fund for entry in entries):
+            return _fail("未在清单中：%s（先 watch add）" % args.fund, EXIT_GATE_FAILED)
+        entries = [entry for entry in entries if entry["code"] == args.fund]
+    if not entries:
+        return _fail("清单为空。用 `funddiff watch add <code>` 添加。", EXIT_GATE_FAILED)
+
+    snapshots_dir = paths.snapshots_dir(data_dir, config=config)
+    disclosure = eid.load_disclosure(data_dir, period=report_period)
+    period_end = window.period_end_of(config, report_period)
+    fetched_at = window.today_iso()
+
+    fetcher = Fetcher(config)
+    payloads = []
+    for entry in entries:
+        code = entry["code"]
+        if fetcher.blocked_hosts():
+            # 域名被封：剩余基金不再发请求，落 timeout/blocked 台账（失败隔离）。
+            payloads.append(normalize.failure_record(
+                code, report_period, "blocked", channel=None,
+                fund_name=entry.get("name"), period_end=period_end))
+            continue
+        try:
+            payload = eastmoney.fetch_holdings(
+                config, code, report_period, fetcher=fetcher, fetched_at=fetched_at,
+                fund_name=entry.get("name"),
+                period_end=period_end)
+        except eastmoney.FetchFailure as failure:
+            payloads.append(normalize.failure_record(
+                code, report_period, failure.error_kind,
+                channel=failure.channel, endpoint=failure.endpoint,
+                fallback_reason=failure.fallback_reason,
+                fund_name=entry.get("name"), period_end=period_end,
+                raw=failure.raw))
+            continue
+        # ETF 联接：结构性无股票持仓。
+        if normalize.is_etf_feeder(payload.get("fund_name"), payload.get("fund_type")):
+            payload = normalize.empty_holdings(
+                code, report_period, fund_name=payload.get("fund_name"),
+                fund_type=payload.get("fund_type"))
+        payloads.append(payload)
+
+    blocked = fetcher.blocked_hosts()
+    summary = {
+        "ok": sum(1 for item in payloads if item["status"] == "ok"),
+        "empty": sum(1 for item in payloads if item["status"] == "empty"),
+        "failed": sum(1 for item in payloads if item["status"] == "failed"),
+    }
+    result = {
+        "schema": "funddiff/fetch@1",
+        "report_period": report_period,
+        "period_end": period_end,
+        "fetched_at": fetched_at,
+        "disclosure_available": disclosure["available"],
+        "snapshots_dir": str(snapshots_dir),
+        "funds": payloads,
+        "totals": summary,
+        "blocked_hosts": blocked,
+    }
+    # 产物落盘：snapshots/<period>/holdings/<code>.json + failures 台账。
+    holdings_dir = snapshots_dir / ("q" + report_period.lower()) / "holdings"
+    holdings_dir.mkdir(parents=True, exist_ok=True)
+    failures = []
+    for payload in payloads:
+        if payload["status"] == "failed":
+            failures.append(payload)
+        (holdings_dir / (payload["fund_code"] + ".json")).write_text(
+            serialize.dumps(payload), encoding="utf-8")
+    if failures:
+        (snapshots_dir / ("q" + report_period.lower()) / "failures.json").write_text(
+            serialize.dumps(failures), encoding="utf-8")
+
+    if getattr(args, "json", False):
+        _emit(_json_text(result))
+    else:
+        _emit("报告期：%s  产物目录：%s" % (report_period, holdings_dir))
+        for payload in payloads:
+            label = {"ok": "成功", "empty": "空仓（结构性）", "failed": "失败"}[
+                payload["status"]]
+            suffix = ""
+            if payload["status"] == "failed":
+                suffix = "（%s）" % (payload["source"].get("fallback_reason") or
+                                    payload["error_kind"])
+            _emit("%s  %s  %d 行%s" % (
+                payload["fund_code"], label, len(payload["rows"]), suffix))
+        _emit("合计：成功 %d / 空 %d / 失败 %d" % (
+            summary["ok"], summary["empty"], summary["failed"]))
+        if blocked:
+            _emit("上游封锁：%s（后续请求已停止，退出码 4）" % ", ".join(sorted(blocked)),
+                  sys.stderr)
+
+    if blocked:
+        return EXIT_UPSTREAM
+    return EXIT_OK
+
+
 def _deadline_reason(window_info):
     reason = window_info.get("unverified_reason") or ""
     if reason.startswith("calendar_missing:"):
@@ -296,6 +412,7 @@ def main(argv=None):
     handlers = {
         "watch": cmd_watch,
         "window": cmd_window,
+        "fetch": cmd_fetch,
         "selftest": cmd_selftest,
     }
     if args.command in STUB_STAGES:

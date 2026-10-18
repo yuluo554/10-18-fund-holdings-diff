@@ -57,9 +57,7 @@ def test_stub_network_modules_use_not_ready():
     import pytest
 
     from funddiff.errors import NotReady
-    from funddiff.net import csrc, eastmoney
+    from funddiff.net import csrc
 
-    with pytest.raises(NotReady):
-        eastmoney.fetch_position_json({}, "990001", "2026Q3")
     with pytest.raises(NotReady):
         csrc.fetch_public_metadata({})

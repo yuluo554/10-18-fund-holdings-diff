@@ -66,3 +66,10 @@ def store_path(explicit=None, cwd=None, default_relative="local_data/watchlist.j
         return Path(explicit)
     base = Path(cwd) if cwd else Path.cwd()
     return base / default_relative
+
+
+def snapshots_dir(data_dir=None, config=None, cwd=None):
+    """抓取产物目录：配置 paths.snapshots_dir 相对当前工作目录（gitignore 隔离）。"""
+    relative = config["paths"]["snapshots_dir"] if config else "snapshots"
+    base = Path(cwd) if cwd else Path.cwd()
+    return base / relative

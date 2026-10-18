@@ -207,3 +207,19 @@ def require_period(config, period):
     """校验报告期字符串并返回窗口（供 M3/M5 复用）。"""
     split_period(period)  # 非法即抛 WindowError
     return window_for_period(config, period)
+
+
+def period_end_of(config, period):
+    """报告期对应的季度结束日（ISO 字符串）。非法报告期抛 WindowError。"""
+    year, quarter = split_period(period)
+    return _quarter_end(config, year, quarter).isoformat()
+
+
+def parse_period(period):
+    """校验 YYYYQn 报告期；合法返回 None，非法抛 WindowError。"""
+    split_period(period)
+
+
+def today_iso():
+    """当天日期（ISO 字符串）。仅用于抓取留痕 fetched_at，不参与业务判定。"""
+    return datetime.date.today().isoformat()

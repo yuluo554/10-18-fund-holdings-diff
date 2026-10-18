@@ -74,6 +74,9 @@ def main():
         global_args = ["--store", store, "--data-dir", str(DATA_DIR)]
 
         cases = [
+            # fetch 在空清单上：失败隔离前的用法门禁（exit 1），不发任何网络请求
+            (["fetch", "--store", str(tmp_path / "empty.json"),
+              "--data-dir", str(DATA_DIR)], 1, "fetch empty watchlist", None),
             (["--help"], 0, "help", None),
             (["--version"], 0, "version", None),
             (["--store", store, "--data-dir", str(DATA_DIR), "selftest"], 0, "selftest", None),
@@ -86,7 +89,6 @@ def main():
             (["window", "--as-of", "2026-10-18"] + global_args, 0, "window", None),
             (["window", "--as-of", "2026-10-18", "--json"] + global_args, 0, "window --json", None),
             (["window", "--as-of", "2026-13-01"] + global_args, 2, "window invalid date", None),
-            (["fetch"] + global_args, 3, "fetch stub", None),
             (["diff"] + global_args, 3, "diff stub", None),
             (["managers"] + global_args, 3, "managers stub", None),
             (["scale"] + global_args, 3, "scale stub", None),
