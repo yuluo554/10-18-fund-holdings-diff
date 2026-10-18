@@ -100,3 +100,4 @@ failures.json
 # 1) 仓库内允许提交的样例只有 data/fixtures/ 下的「合成快照」（sample: synthetic）。
 # 2) 真实抓取的一次响应、全量清单、任何个人自选清单，一律禁止提交。
 # 3) 若确需留档真实响应作证据，只能放在本地 snapshots/ 并在文档中写明路径与 sha256，不进 git。
+dist-release/

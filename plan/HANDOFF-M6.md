@@ -1,4 +1,15 @@
-# HANDOFF-M6 续接快照
+# HANDOFF-M6 续接快照（✅ 已收官：M6 完成，2026-10-18）
+
+> **收官说明**：M6 已完成并经验证，项目 M0–M6 全部收官。本文件保留原续接快照内容作历史记录；完成证据见下"收官记录"与 `plan/RELEASE-M6.md`。无后续接力棒。
+>
+> **收官记录（2026-10-18）**：
+> - 仓库：https://github.com/yuluo554/10-18-fund-holdings-diff（公开，署名 yuluo554）
+> - CI 首跑全绿：run 39103686550（py3.8/py3.12 × windows/ubuntu 四 job ✓）
+> - 三件套：tag `v0.1.0` + Release（附件 funddiff-0.1.0.tar.gz + SHA256SUMS，真下载 sha256 OK）+ `plan/RELEASE-M6.md`（commit `6fec541` 早于 tag，随 tag 进 tag 树）
+> - 发布物本体复核：解包树与 tag 树 `diff -r` 为空；中立目录新 venv 内 selftest 10 项 / 双 --check / 双解释器 219 passed / ci_smoke 全绿
+> - 干净 clone + 新 venv 四矩阵：219 passed（3.8）/ 219 passed（3.12）/ ci_smoke PASS / 双 --check PASS
+> - 脱敏：本机路径/密钥/临时产物 0 命中；署名统一 yuluo554
+> - 版本定版：0.1.0.dev0 → 0.1.0（`pyproject.toml` + `src/funddiff/__init__.py`，四处一致）
 
 > 用法：新对话以 `/goal 读取 "<项目绝对路径>\plan\HANDOFF-M6.md" 继续完成任务`。
 > 库内一律相对路径；绝对路径只出现在用户侧启动命令里。

@@ -47,17 +47,21 @@
 
 ### 2.1 tag
 
-- `v0.1.0`（annotated）：tag 对象指向含 `plan/RELEASE-M6.md` 的提交树（本文件随 tag 落盘）。
+- `v0.1.0`（annotated，2026-10-18）：tag 对象指向含 `plan/RELEASE-M6.md` 的提交树（本文件随 tag 落盘）；`git cat-file -t v0.1.0` = tag。版本四处一致：`pyproject.toml` = `__init__.py` = tag 名 = Release 名 = `0.1.0` / `v0.1.0`。
 
 ### 2.2 Release 附件与 sha256
 
 - 附件：`funddiff-0.1.0.tar.gz`（git archive `v0.1.0` 树 + `gzip -9n`）、`SHA256SUMS`；本地留副本于 `dist-release/`（gitignore）。
-- 附件 sha256 与 `SHA256SUMS` 逐条一致；见 §2.3 复核记录。
+- `funddiff-0.1.0.tar.gz` sha256 = `7b972bf27a80a3db505f1141585986daeacf39bfc9c665ae58456a0e48fce7b5`（170077 字节）；`SHA256SUMS` 与之逐条一致，真下载复核见 §2.3。
 
-### 2.3 发布物本体复核（真下载 + 中立目录解包复跑）
+### 2.3 发布物本体复核（真下载 + 中立目录解包复跑）✅ 2026-10-18 已执行
 
-- 从 GitHub Release 真实下载附件，sha256 与本地副本一致。
-- 中立目录解包，树与 `git archive` 期望一致（`diff -r` 与 tag 检出树逐文件比对无差异）。
-- 解包树内复跑：`selftest` 10 项 PASS + `freeze_config --check` / `gen_fixtures --check` PASS + pytest 全绿。
-
-（以上三项由发布后追加提交记录实际执行结果与时间戳。）
+- Release 地址：https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.0
+- **真下载**：`gh release download v0.1.0` 至中立目录（`$TMPDIR/rel-verify`）；`sha256sum -c SHA256SUMS` → `funddiff-0.1.0.tar.gz: OK`（sha256 `7b972bf27a80…fce7b5`）。
+- **解包树比对**：`git archive v0.1.0` 展开树与解包树 `diff -r` **为空**（TREE-DIFF-EMPTY）。
+- **中立目录复跑**（解包树内新建 venv + `pip install -e ".[dev]"`）：
+  - `selftest`：10 项全 PASS
+  - `freeze_config --check` / `gen_fixtures --check`：均 PASS
+  - `py -3.8` pytest：219 passed；`py -3.12` pytest：219 passed
+  - `tools/ci_smoke.py`：PASS（0 failure）
+- 复核后临时目录已清理；本地附件副本留 `dist-release/`（gitignore，不入仓）。
