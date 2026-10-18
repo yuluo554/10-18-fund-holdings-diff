@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include MANIFEST.in
+include data/README.md
+recursive-include data/config *.json
+recursive-include data/fixtures *.json
+recursive-include plan *.md
+recursive-include src/funddiff *.py
+recursive-include tools *.py

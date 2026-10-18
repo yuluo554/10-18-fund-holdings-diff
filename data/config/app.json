@@ -1,0 +1,99 @@
+{
+  "config_version": "0.1.0-m0",
+  "schema": "funddiff/config@1",
+  "diff": {
+    "mode": "computed",
+    "threshold": "0.10",
+    "threshold_note": "两份季报占比通常保留两位小数；低于最小显示精度的差额视为不变。",
+    "status_labels": ["新进", "退出", "加仓", "减仓", "不变"],
+    "pending_label": "待确认"
+  },
+  "quarters": {
+    "Q1": {"period_end": "03-31", "disclosure_deadline": "04-30", "unverified": true},
+    "Q2": {"period_end": "06-30", "disclosure_deadline": "08-31", "unverified": true},
+    "Q3": {"period_end": "09-30", "disclosure_deadline": "10-31", "unverified": false},
+    "Q4": {"period_end": "12-31", "disclosure_deadline": "01-31", "unverified": true}
+  },
+  "quarters_note": "仅 Q3 的披露截止日为题面给定的制度事实；Q1/Q2/Q4 标 unverified，须按法规原文核对后翻转。",
+  "rate_limit": {
+    "min_interval_seconds": "1.0",
+    "timeout_seconds": "15",
+    "max_retries": 3,
+    "backoff_initial_seconds": "1.0",
+    "backoff_factor": "2.0",
+    "backoff_max_seconds": "30.0",
+    "stop_on": ["http_429", "http_403", "captcha", "login_redirect"]
+  },
+  "sources": {
+    "csrc_eid_public": {
+      "kind": "official_metadata",
+      "label": "来源：基金定期报告公开披露",
+      "endpoint": "http://eid.csrc.gov.cn/fund/disclose/indexPublicData.json",
+      "role": "disclosure_status"
+    },
+    "eastmoney_position_json": {
+      "kind": "commercial",
+      "label": "来源：基金季度报告",
+      "endpoint": "https://fundmobapi.eastmoney.com/FundMNewApi/FundMNInverstPosition",
+      "role": "holdings_primary"
+    },
+    "eastmoney_position_page": {
+      "kind": "commercial",
+      "label": "来源：基金季度报告",
+      "endpoint": "https://fundf10.eastmoney.com/FundArchivesDatas.aspx",
+      "role": "holdings_fallback",
+      "encoding": "gbk"
+    },
+    "eastmoney_scale": {
+      "kind": "commercial",
+      "label": "来源：基金定期报告公开披露",
+      "endpoint": "https://fundf10.eastmoney.com/FundArchivesDatas.aspx",
+      "role": "scale"
+    },
+    "eastmoney_managers": {
+      "kind": "commercial",
+      "label": "来源：基金定期报告公开披露",
+      "endpoint": "https://fundf10.eastmoney.com/jjjl_{code}.html",
+      "role": "managers",
+      "encoding": "utf-8"
+    },
+    "eastmoney_fund_codes": {
+      "kind": "commercial",
+      "label": "来源：基金代码公开索引",
+      "endpoint": "https://fund.eastmoney.com/js/fundcode_search.js",
+      "role": "code_mapping"
+    }
+  },
+  "sources_note": "商业接口只作字段补充，不得在报告中写成官方来源；官方只提供披露元数据。",
+  "compliance": {
+    "forbidden_terms": [
+      "抄作业",
+      "跟随基金经理",
+      "跟买",
+      "推荐",
+      "买入",
+      "卖出建议",
+      "抄底",
+      "必涨",
+      "稳赚",
+      "包赚",
+      "跑赢",
+      "牛基",
+      "神基",
+      "明星基金经理",
+      "闭眼买",
+      "上车"
+    ],
+    "scan_targets": ["report.md", "report.html", "report_data.json"],
+    "footer": "非投资建议 · 来源：基金季度报告"
+  },
+  "ordering": {
+    "ledger": ["fund_code", "cur_ratio_desc", "stock_code"],
+    "watchlist": ["code"]
+  },
+  "paths": {
+    "store_default": "local_data/watchlist.json",
+    "snapshots_dir": "snapshots",
+    "out_dir": "out"
+  }
+}

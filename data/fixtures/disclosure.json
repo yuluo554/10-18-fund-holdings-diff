@@ -1,0 +1,19 @@
+{
+  "schema": "funddiff/disclosure@1",
+  "sample": "synthetic",
+  "note": "合成快照：用于演示披露状态三态判定，不对应任何真实基金。M1 起由 tools/gen_fixtures.py 生成并纳入 MANIFEST。",
+  "reports": [
+    {
+      "fundcode": "990001",
+      "report_period": "2026Q3",
+      "report_send_date": "2026-10-17",
+      "title": "样例基金甲2026年第3季度报告"
+    },
+    {
+      "fundcode": "990002",
+      "report_period": "2026Q2",
+      "report_send_date": "2026-08-28",
+      "title": "样例基金乙2026年第2季度报告"
+    }
+  ]
+}

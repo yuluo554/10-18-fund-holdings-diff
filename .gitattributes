@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+# 冻结快照按字节比对 sha256：禁止行尾归一化
+data/fixtures/** -text
+
+# 二进制
+*.png binary
+*.jpg binary
+*.pdf binary
+*.gz binary
+*.zip binary
+
+# 工作流与配置一律 LF
+.github/workflows/*.yml text eol=lf
+data/config/*.json text eol=lf

@@ -161,6 +161,17 @@ GET http://eid.csrc.gov.cn/fund/disclose/indexDailyReportData.json
 
 ---
 
+## 二·补、仓库内合成快照清单（M0 现状）
+
+| 文件 | 内容 | 状态 |
+|---|---|---|
+| `data/config/app.json` | 冻结配置包（窗口 / diff 口径与阈值 / 限频退避 / 合规词表 / 来源注册表 / 排序约定） | ✅ M0 雏形，M1 冻结并加 MANIFEST |
+| `data/fixtures/disclosure.json` | 披露元数据**合成**快照（2 条，用于三态判定的基准样本） | ✅ M0，M1 由生成器产出并纳入 MANIFEST |
+
+**全部为 `sample: synthetic`**，不对应任何真实基金，不含任何真实抓取响应。
+
+---
+
 ## 三、合成数据纪律
 
 **核心原则：仓库内不出现真实抓取的全量数据。**
