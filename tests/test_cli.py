@@ -135,7 +135,7 @@ def test_missing_data_dir_returns_2(capsys, store_file, tmp_path):
 
 
 @pytest.mark.parametrize("command,stage", [
-    ("diff", "M3"), ("managers", "M4"),
+    ("managers", "M4"),
     ("scale", "M4"), ("report", "M5"), ("run", "M5"),
 ])
 def test_stub_commands_return_3(capsys, store_file, command, stage):

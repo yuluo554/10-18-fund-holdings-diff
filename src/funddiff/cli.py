@@ -23,7 +23,6 @@ EXIT_UPSTREAM = 4
 EXIT_INTERNAL = 5
 
 STUB_STAGES = {
-    "diff": "M3",
     "managers": "M4",
     "scale": "M4",
     "report": "M5",
@@ -100,6 +99,7 @@ def build_parser():
                           help="diff 口径；缺省取配置冻结值")
     diff_cmd.add_argument("--period", default=None, help="报告期 YYYYQn")
     diff_cmd.add_argument("--fund", default=None, help="基金代码；缺省为整份清单")
+    diff_cmd.add_argument("--json", action="store_true", help="输出机读 JSON")
 
     managers = _common_options(subparsers.add_parser("managers", help="基金经理变更（M4）"))
     managers.add_argument("--fund", default=None, help="基金代码")
@@ -351,6 +351,81 @@ def cmd_fetch(args):
     return EXIT_OK
 
 
+def cmd_diff(args):
+    """Q/Q 持仓 diff（M3）。
+
+    退出码契约：成功 0；清单空/基金不在清单/快照缺失 1；
+    口径非法或报告期非法 2。
+    双口径：缺省取配置冻结 diff.mode；--mode 可覆盖但必须显式选择。
+    """
+    from . import diff as diff_mod
+    from . import window
+
+    data_dir, config, store_file = _resolve(args)
+    mode = args.mode or config["diff"]["mode"]
+    if mode not in ("provider", "computed"):
+        return _fail("未知 diff 口径：%r（仅 provider / computed）" % mode, EXIT_USAGE)
+
+    report_period = args.period
+    if report_period is None:
+        window_info, _as_of = window.resolve_window(config, getattr(args, "as_of", None))
+        report_period = window_info["report_period"]
+
+    entries = store.Watchlist(store_file).list_all()
+    if args.fund:
+        if not any(entry["code"] == args.fund for entry in entries):
+            return _fail("未在清单中：%s（先 watch add）" % args.fund, EXIT_GATE_FAILED)
+        codes = [args.fund]
+    else:
+        codes = [entry["code"] for entry in entries]
+
+    try:
+        result = diff_mod.build(data_dir, config, codes, report_period, mode)
+    except diff_mod.DiffError as exc:
+        return _fail(str(exc), EXIT_GATE_FAILED)
+    except window.WindowError as exc:
+        return _fail(str(exc), EXIT_USAGE)
+    except ValueError as exc:
+        return _fail(str(exc), EXIT_INTERNAL)
+
+    out_dir = paths.snapshots_dir(data_dir, config=config) / (
+        "q" + report_period.lower())
+    out_file = out_dir / "diff.json"
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    out_file.write_text(serialize.dumps(result), encoding="utf-8")
+
+    if getattr(args, "json", False):
+        _emit(_json_text(result))
+    else:
+        _emit("报告期：%s（对比 %s）  口径：%s  阈值：%s" % (
+            result["report_period"], result["prev_period"], mode,
+            result["threshold"]))
+        for fund in result["funds"]:
+            if fund["status"] == diff_mod.FUND_INSUFFICIENT:
+                _emit("%s  %s  数据不足（任一季抓取失败），不与空仓混淆" % (
+                    fund["fund_code"], fund["fund_name"] or ""))
+                continue
+            _emit("%s  %s  %d 条" % (fund["fund_code"], fund["fund_name"] or "",
+                                     len(fund["entries"])))
+            for entry in fund["entries"]:
+                delta = entry["delta"] if entry["delta"] is not None else "—"
+                _emit("  %s  %s  %s→%s（%s）%s" % (
+                    entry["stock_code"], entry["status"],
+                    entry["prev_ratio"], entry["cur_ratio"], delta,
+                    ("  异常:%s" % ",".join(entry["anomalies"]))
+                    if entry["anomalies"] else ""))
+        if result["conflicts"]:
+            _emit("双口径冲突 %d 条（详见产物 conflicts，不合并、不裁决）：" %
+                  len(result["conflicts"]), sys.stderr)
+            for item in result["conflicts"]:
+                _emit("  %s %s：provider=%s(%s) vs computed=%s(%s)" % (
+                    item["fund_code"], item["stock_code"],
+                    item["provider_status"], item["provider_change_pct"],
+                    item["computed_status"], item["computed_delta"]), sys.stderr)
+        _emit("产物：%s" % out_file)
+    return EXIT_OK
+
+
 def _deadline_reason(window_info):
     reason = window_info.get("unverified_reason") or ""
     if reason.startswith("calendar_missing:"):
@@ -413,6 +488,7 @@ def main(argv=None):
         "watch": cmd_watch,
         "window": cmd_window,
         "fetch": cmd_fetch,
+        "diff": cmd_diff,
         "selftest": cmd_selftest,
     }
     if args.command in STUB_STAGES:
@@ -426,5 +502,7 @@ def main(argv=None):
         return handler(args)
     except (ConfigError, paths.DataDirError, store.StoreError, window.WindowError) as exc:
         return _fail(str(exc), EXIT_USAGE)
+    except ValueError as exc:
+        return _fail(str(exc), EXIT_INTERNAL)
     except KeyboardInterrupt:
         return _fail("已中断。", EXIT_UPSTREAM)

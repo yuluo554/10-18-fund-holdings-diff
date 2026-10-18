@@ -86,10 +86,26 @@ def main():
             (["watch", "list", "--json"] + global_args, 0, "watch list --json", None),
             (["watch", "remove", "990002"] + global_args, 1, "watch remove absent", None),
             (["watch", "add", "abc"] + global_args, 2, "watch add invalid", None),
+            (["watch", "add", "990002", "--name", "样例乙"] + global_args, 0, "watch add 2", None),
+            # diff 真实跑：8 只合成基金全加进清单，走完整 Q/Q diff（M3 退役 stub）
+            (["watch", "add", "990003", "--name", "样例丙"] + global_args, 0, "watch add 3", None),
+            (["watch", "add", "990004", "--name", "样例丁"] + global_args, 0, "watch add 4", None),
+            (["watch", "add", "990005", "--name", "样例戊"] + global_args, 0, "watch add 5", None),
+            (["watch", "add", "990006", "--name", "样例己"] + global_args, 0, "watch add 6", None),
+            (["watch", "add", "990007", "--name", "样例庚"] + global_args, 0, "watch add 7", None),
+            (["watch", "add", "990008", "--name", "样例辛"] + global_args, 0, "watch add 8", None),
+            (["diff", "--period", "2026Q3", "--json"] + global_args, 0, "diff real run", None),
+            (["diff", "--period", "2026Q3"] + global_args, 0, "diff real run (text)", None),
             (["window", "--as-of", "2026-10-18"] + global_args, 0, "window", None),
             (["window", "--as-of", "2026-10-18", "--json"] + global_args, 0, "window --json", None),
             (["window", "--as-of", "2026-13-01"] + global_args, 2, "window invalid date", None),
-            (["diff"] + global_args, 3, "diff stub", None),
+            # diff 空清单门禁：独立空清单（exit 1），不受上面已加基金的影响
+            (["diff", "--store", str(tmp_path / "empty-wl.json"),
+              "--data-dir", str(DATA_DIR)], 1, "diff empty watchlist", None),
+            (["diff", "--mode", "bogus", "--store", store, "--data-dir", str(DATA_DIR)],
+             2, "diff invalid mode", None),
+            (["diff", "--period", "2026Q9", "--store", store, "--data-dir", str(DATA_DIR)],
+             2, "diff invalid period", None),
             (["managers"] + global_args, 3, "managers stub", None),
             (["scale"] + global_args, 3, "scale stub", None),
             (["report"] + global_args, 3, "report stub", None),
@@ -100,6 +116,11 @@ def main():
             ok, out, err = run(args, expect, label, cwd)
             if not ok:
                 failures += 1
+            if label == "diff real run" and ok:
+                payload = json.loads(out)
+                if payload["schema"] != "funddiff/diff@1" or payload["funds"][0]["fund_code"] != "990001":
+                    print("[FAIL] diff real run 产物不符")
+                    failures += 1
             if label == "watch list --json" and ok:
                 payload = json.loads(out)
                 if [item["code"] for item in payload["funds"]] != ["990001"]:

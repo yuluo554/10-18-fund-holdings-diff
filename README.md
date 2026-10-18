@@ -27,7 +27,7 @@
 
 ## 当前状态
 
-**M0–M2 已完成，M3（Q/Q diff）待开工。** 真实可用的有 `watch` / `window` / `fetch` / `selftest`
+**M0–M3 已完成，M4（经理与规模）待开工。** 真实可用的有 `watch` / `window` / `fetch` / `diff` / `selftest`
 （M1 起含配置冻结门禁与两季合成快照；M2 起双通道持仓抓取与归一真实可用，产物落 `snapshots/`，不入仓）；其余子命令按契约返回退出码 **3**（该阶段尚未就绪），**不是故障**。
 
 | 里程碑 | 内容 | 状态 |
@@ -35,7 +35,7 @@
 | M0 | 骨架、退出码契约、确定性写盘、清单、窗口三态 | ✅ |
 | M1 | 冻结配置包（法规化披露期限）+ 合成两季快照 + 真值 + eid 接入 | ✅ |
 | M2 | 双通道抓取（JSON 优先 / 页面回落）+ 归一 + 失败隔离 | ✅ |
-| M3 | 五态 Q/Q diff + 双口径 + 冲突清单 + 双季溯源 | ⬜ |
+| M3 | 五态 Q/Q diff + 双口径 + 冲突清单 + 双季溯源 | ✅ |
 | M4 | 经理变更 + 规模变动 | ⬜ |
 | M5 | 季报三产物 + 合规硬门禁 | ⬜ |
 | M6 | GitHub 发布 | ⬜ |
@@ -84,7 +84,12 @@ py -3.12 -X utf8 -m funddiff watch remove 990001
 py -3.12 -X utf8 -m funddiff window --as-of 2026-10-18
 py -3.12 -X utf8 -m funddiff window --as-of 2026-10-20 --json
 
-# 4) 冻结产物校验（CI 与本地同一份门禁）
+# 4) Q/Q 持仓 diff（五态 + 双口径 + 冲突清单；M3）
+py -3.12 -X utf8 -m funddiff diff --period 2026Q3                # 文本输出
+py -3.12 -X utf8 -m funddiff diff --period 2026Q3 --mode provider --json
+# 产物落 snapshots/q2026q3/diff.json（gitignore，不入仓）
+
+# 5) 冻结产物校验（CI 与本地同一份门禁）
 py -3.12 -X utf8 tools/freeze_config.py --check
 py -3.12 -X utf8 tools/gen_fixtures.py --check
 ```
@@ -107,7 +112,7 @@ funddiff --version
 | `funddiff watch remove <code>` | 删除；不存在时返回 `1`（谓词不成立） | `0` / `1` |
 | `funddiff window [--as-of YYYY-MM-DD] [--json]` | 本期报告窗口 + 逐基金披露状态 | `0`；`2` 日期非法 |
 | `funddiff fetch [--fund CODE] [--period YYYYQn] [--json]` | 抓取并归一持仓（失败隔离；产物落 `snapshots/`） | `0` 成功（含部分失败，失败落 `failures.json`）；`1` 清单为空/基金不在清单；`4` 上游封锁（限频/验证码/登录墙）；`2` 参数非法 |
-| `funddiff diff [--mode provider\|computed]` | Q/Q 五态变动 | `3`（M3 实现） |
+| `funddiff diff [--mode provider\|computed] [--period YYYYQn] [--fund CODE] [--json]` | Q/Q 五态变动（与上季持仓对齐；产物落 `snapshots/q<period>/diff.json`） | `0` 成功；`1` 清单为空/基金不在清单/缺两季快照；`2` 口径或报告期非法 |
 | `funddiff managers [--fund CODE]` | 基金经理变更事件 | `3`（M4 实现） |
 | `funddiff scale [--fund CODE]` | 规模变动四条口径 | `3`（M4 实现） |
 | `funddiff report [--period YYYYQn] [--out-dir DIR]` | 生成季报三产物 | `3`（M5 实现）；`1` 合规命中 |
