@@ -71,6 +71,8 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         store = str(tmp_path / "watchlist.json")
+        out_report = str(tmp_path / "out-report")
+        out_run = str(tmp_path / "out-run")
         global_args = ["--store", store, "--data-dir", str(DATA_DIR)]
 
         cases = [
@@ -123,8 +125,23 @@ def main():
              "managers invalid period", None),
             (["scale", "--period", "2026Q9"] + global_args, 2,
              "scale invalid period", None),
-            (["report"] + global_args, 3, "report stub", None),
-            (["run"] + global_args, 3, "run stub", None),
+            # M5 真实跑：report 三产物 + 合规/零外链门禁；run 一条命令全流程（离线）
+            (["report", "--period", "2026Q3", "--out-dir", out_report,
+              "--store", store, "--data-dir", str(DATA_DIR)], 0,
+             "report real run", None),
+            (["report", "--period", "2026Q3", "--check-compliance",
+              "--store", store, "--data-dir", str(DATA_DIR)], 0,
+             "report --check-compliance", None),
+            (["report", "--period", "2026Q9",
+              "--store", store, "--data-dir", str(DATA_DIR)], 2,
+             "report invalid period", None),
+            (["report", "--store", str(tmp_path / "empty-wl4.json"),
+              "--data-dir", str(DATA_DIR)], 1, "report empty watchlist", None),
+            (["run", "--as-of", "2026-10-18", "--out-dir", out_run,
+              "--store", store, "--data-dir", str(DATA_DIR)], 0,
+             "run real run (offline)", None),
+            (["run", "--store", str(tmp_path / "empty-wl5.json"),
+              "--data-dir", str(DATA_DIR)], 1, "run empty watchlist", None),
         ]
 
         for args, expect, label, cwd in cases:
@@ -174,6 +191,36 @@ def main():
                     if token not in out:
                         print("[FAIL] window 输出缺少 %r" % token)
                         failures += 1
+            if label == "report real run" and ok:
+                for name in ("report.md", "report.html", "report_data.json"):
+                    if not (Path(out_report) / name).is_file():
+                        print("[FAIL] report 缺少 %s" % name)
+                        failures += 1
+                payload = json.loads(
+                    (Path(out_report) / "report_data.json").read_text(
+                        encoding="utf-8"))
+                if payload["schema"] != "funddiff/report@1":
+                    print("[FAIL] report schema 不符")
+                    failures += 1
+                html_text = (Path(out_report) / "report.html").read_text(
+                    encoding="utf-8")
+                for pattern in ("<script src", "<link", "http://", "https://",
+                                'src="//', "url("):
+                    if pattern in html_text.lower():
+                        print("[FAIL] report.html 含外链形态 %r" % pattern)
+                        failures += 1
+            if label == "run real run (offline)" and ok:
+                for name in ("report.md", "report.html", "report_data.json",
+                             "diff.json", "managers.json", "scale.json"):
+                    if not (Path(out_run) / name).is_file():
+                        print("[FAIL] run 缺少 %s" % name)
+                        failures += 1
+                payload = json.loads(
+                    (Path(out_run) / "report_data.json").read_text(
+                        encoding="utf-8"))
+                if payload["totals"]["funds"] != 8:
+                    print("[FAIL] run 汇总基金数不符：%r" % payload["totals"])
+                    failures += 1
 
         # 数据目录不可用时 selftest 必须非零（可证伪）；语义是"输入错误"→ exit 2
         ok, _, _ = run(

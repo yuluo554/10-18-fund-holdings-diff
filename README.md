@@ -27,7 +27,7 @@
 
 ## 当前状态
 
-**M0–M4 已完成，M5（季报与合规门禁）待开工。** 真实可用的有 `watch` / `window` / `fetch` / `diff` / `managers` / `scale` / `selftest`
+**M0–M5 已完成，M6（发布）待开工。** 真实可用的有 `watch` / `window` / `fetch` / `diff` / `managers` / `scale` / `report` / `run` / `selftest`
 （M1 起含配置冻结门禁与两季合成快照；M2 起双通道持仓抓取与归一真实可用，M3 起五态 diff 真实可用，M4 起经理变更与规模变动真实可用，产物落 `snapshots/`，不入仓）；其余子命令按契约返回退出码 **3**（该阶段尚未就绪），**不是故障**。
 
 | 里程碑 | 内容 | 状态 |
@@ -37,7 +37,7 @@
 | M2 | 双通道抓取（JSON 优先 / 页面回落）+ 归一 + 失败隔离 | ✅ |
 | M3 | 五态 Q/Q diff + 双口径 + 冲突清单 + 双季溯源 | ✅ |
 | M4 | 经理变更 + 规模变动 | ✅ |
-| M5 | 季报三产物 + 合规硬门禁 | ⬜ |
+| M5 | 季报三产物 + 合规硬门禁 | ✅（2026-10-18） |
 | M6 | GitHub 发布 | ⬜ |
 
 > CI：仓库尚无远端，**尚未跑过 CI**。当前所有验证均为"本地等价校验"，待首推验证。
@@ -120,8 +120,8 @@ funddiff --version
 | `funddiff diff [--mode provider\|computed] [--period YYYYQn] [--fund CODE] [--json]` | Q/Q 五态变动（与上季持仓对齐；产物落 `snapshots/q<period>/diff.json`） | `0` 成功；`1` 清单为空/基金不在清单/缺两季快照；`2` 口径或报告期非法 |
 | `funddiff managers [--fund CODE] [--period YYYYQn] [--json]` | 基金经理变更四类判定（区间来自冻结配置；`unparsed` 附页面快照，与无变更分开；产物落 `snapshots/q<period>/managers.json`） | `0` 成功；`1` 清单为空/基金不在清单/缺事件快照；`2` 报告期非法 |
 | `funddiff scale [--fund CODE] [--period YYYYQn] [--json]` | 规模六字段台账（单位读表头原样记录；`0` 真实零申赎与 `null` 缺失可区分；`no_prev_baseline` 时流量字段为 null 不补 0；产物落 `snapshots/q<period>/scale.json`） | `0` 成功；`1` 清单为空/基金不在清单/缺事件快照；`2` 报告期非法 |
-| `funddiff report [--period YYYYQn] [--out-dir DIR]` | 生成季报三产物 | `3`（M5 实现）；`1` 合规命中 |
-| `funddiff run [--as-of YYYY-MM-DD] [--out-dir DIR]` | 一条命令跑全流程 | `3`（M5 实现） |
+| `funddiff report [--period YYYYQn] [--out-dir DIR] [--check-compliance] [--prev-report DIR]` | 生成季报三产物 | `0` 成功；`1` 合规/零外链命中、清单/快照门禁、上期报告不合法；`2` 报告期非法 |
+| `funddiff run [--as-of YYYY-MM-DD] [--out-dir DIR]` | 一条命令跑全流程（离线：diff→managers→scale→report） | `0` 成功；`1` 清单为空/快照缺失/门禁命中；`2` 输入非法 |
 | `funddiff selftest [--json]` | 自检（可证伪） | `0` 通过；`1` 有检查失败；`2` 数据目录不可用（自检未运行） |
 
 全局参数：`--store PATH`（清单路径）、`--data-dir PATH`（数据目录）。

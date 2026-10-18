@@ -22,12 +22,6 @@ EXIT_NOT_READY = 3
 EXIT_UPSTREAM = 4
 EXIT_INTERNAL = 5
 
-STUB_STAGES = {
-    "report": "M5",
-    "run": "M5",
-}
-
-
 def _ensure_utf8_stdio():
     """控制台编码不足以输出中文时切到 UTF-8；cp936 保持不动。"""
     for stream_name in ("stdout", "stderr"):
@@ -111,9 +105,11 @@ def build_parser():
 
     report = _common_options(subparsers.add_parser("report", help="生成季报（M5）"))
     report.add_argument("--period", default=None, help="报告期 YYYYQn")
+    report.add_argument("--as-of", default=None, help="判断基准日 YYYY-MM-DD")
     report.add_argument("--out-dir", default=None, help="产物目录")
     report.add_argument("--check-compliance", action="store_true", help="只做合规检查")
     report.add_argument("--prev-report", default=None, help="上期报告目录，用于对比")
+    report.add_argument("--fund", default=None, help="基金代码；缺省为整份清单")
 
     run = _common_options(subparsers.add_parser("run", help="一条命令跑全流程（M5）"))
     run.add_argument("--as-of", default=None, help="判断基准日 YYYY-MM-DD")
@@ -575,6 +571,207 @@ def _deadline_reason(window_info):
     return "截止日规则超出可计算范围"
 
 
+def _resolve_report_period(args, config):
+    from . import window
+    period = getattr(args, "period", None)
+    if period is not None:
+        return period
+    window_info, _as_of = window.resolve_window(config, getattr(args, "as_of", None))
+    return window_info["report_period"]
+
+
+def _codes_from_watchlist(store_file, fund=None):
+    entries = store.Watchlist(store_file).list_all()
+    if fund:
+        if not any(entry["code"] == fund for entry in entries):
+            return None
+        return [fund]
+    return [entry["code"] for entry in entries]
+
+
+def cmd_report(args):
+    """季报三产物 + 合规门禁（M5）。
+
+    退出码契约：成功 0；清单空/基金不在清单/快照缺失/上期报告目录不合法 1；
+    报告期非法 2；合规命中 1（文件:行:命中词）；零外链命中 1。
+    --check-compliance 只查不生成（0/1）；默认生成后即检查。
+    """
+    from . import compliance, paths, presentation, report as report_mod, window
+
+    data_dir, config, store_file = _resolve(args)
+    try:
+        period = _resolve_report_period(args, config)
+        window.parse_period(period)
+    except window.WindowError as exc:
+        return _fail(str(exc), EXIT_USAGE)
+
+    as_of = getattr(args, "as_of", None) or window.today_iso()
+    codes = _codes_from_watchlist(store_file, getattr(args, "fund", None))
+    if codes is None:
+        return _fail("未在清单中：%s（先 watch add）" % args.fund, EXIT_GATE_FAILED)
+    if not codes:
+        return _fail("清单为空。用 `funddiff watch add <code>` 添加。", EXIT_GATE_FAILED)
+
+    terms = config["compliance"]["forbidden_terms"]
+
+    if getattr(args, "check_compliance", False):
+        try:
+            results = presentation.check_only(data_dir, config, store_file, period, as_of)
+        except (presentation.ReportError, ValueError) as exc:
+            return _fail(str(exc), EXIT_INTERNAL)
+        hits = compliance.format_hits(results)
+        for line in hits:
+            _emit(line, sys.stderr)
+        if hits:
+            return _fail("合规门禁：%d 处命中（词表来自冻结配置）" % len(hits),
+                         EXIT_GATE_FAILED)
+        _emit("合规检查通过（0 命中）。")
+        return EXIT_OK
+
+    try:
+        model = presentation.assemble(
+            data_dir, config, codes, period, as_of,
+            prev_report_dir=getattr(args, "prev_report", None))
+    except (presentation.ReportError, window.WindowError) as exc:
+        return _fail(str(exc), EXIT_GATE_FAILED)
+    except ValueError as exc:
+        return _fail(str(exc), EXIT_INTERNAL)
+
+    products = report_mod.build_report_products(model)
+
+    # 合规门禁：生成后立即检查（plan/03 §6.3）；命中 → exit 1 且不交出产物摘要。
+    results = presentation.run_compliance_scan(products, terms)
+    hits = compliance.format_hits(results)
+    for line in hits:
+        _emit(line, sys.stderr)
+    if hits:
+        return _fail("合规门禁：%d 处命中（词表来自冻结配置）" % len(hits),
+                     EXIT_GATE_FAILED)
+
+    # 零外链门禁（plan/03 §6.4）：HTML 0 命中才能 exit 0。
+    link_hits = report_mod.scan_external_links(products["report.html"])
+    for hit in link_hits:
+        _emit("report.html:%d:外链形态 %r（%s）" % (
+            hit["line"], hit["pattern"], hit["excerpt"][:80]), sys.stderr)
+    if link_hits:
+        return _fail("零外链门禁：%d 处命中" % len(link_hits), EXIT_GATE_FAILED)
+
+    out_dir = getattr(args, "out_dir", None)
+    if out_dir:
+        out_path = paths.resolve_out_dir(out_dir)
+    else:
+        out_path = paths.snapshots_dir(data_dir, config=config) / (
+            "q" + period.lower())
+    written = []
+    for name, text in sorted(products.items()):
+        target = out_path / name
+        serialize.write_text(target, text)
+        written.append(target)
+
+    if getattr(args, "json", False):
+        _emit(_json_text({
+            "schema": report_mod.REPORT_JSON_SCHEMA,
+            "report_period": period,
+            "as_of": as_of,
+            "out_dir": str(out_path),
+            "files": sorted(products),
+            "compliance": {"scanned": True, "hits": []},
+            "totals": model["totals"],
+        }))
+        return EXIT_OK
+
+    for target in written:
+        _emit("产物：%s" % target)
+    totals = model["totals"]
+    _emit("合规检查：0 命中（词表来自冻结配置）。")
+    _emit("汇总：基金 %d 只；已披露 %d / 待披露 %d / 无数据 %d" % (
+        totals["funds"], totals["disclosed"], totals["pending"], totals["no_data"]))
+    return EXIT_OK
+
+
+def cmd_run(args):
+    """一条命令全流程（M5）：离线（快照 → diff → managers → scale → report）。
+
+    退出码契约同 report；全程零网络（不调用 fetch）。
+    """
+    from . import diff as diff_mod, managers as managers_mod
+    from . import paths, presentation, report as report_mod, scale as scale_mod
+    from . import window
+
+    data_dir, config, store_file = _resolve(args)
+    window_info, as_of_date = window.resolve_window(config, getattr(args, "as_of", None))
+    period = window_info["report_period"]
+    as_of = as_of_date.isoformat()
+
+    entries = store.Watchlist(store_file).list_all()
+    if not entries:
+        return _fail("清单为空。用 `funddiff watch add <code>` 添加。", EXIT_GATE_FAILED)
+    codes = [entry["code"] for entry in entries]
+
+    try:
+        diff_result = diff_mod.build(data_dir, config, codes, period,
+                                     config["diff"]["mode"])
+        managers_result = managers_mod.build(data_dir, config, codes, period)
+        scale_result = scale_mod.build(data_dir, config, codes, period)
+        model = presentation.assemble(data_dir, config, codes, period, as_of)
+    except (diff_mod.DiffError, managers_mod.ManagerError, scale_mod.ScaleError,
+            presentation.ReportError, window.WindowError) as exc:
+        return _fail(str(exc), EXIT_GATE_FAILED)
+    except ValueError as exc:
+        return _fail(str(exc), EXIT_INTERNAL)
+
+    products = report_mod.build_report_products(model)
+
+    terms = config["compliance"]["forbidden_terms"]
+    from . import compliance
+    hits = compliance.format_hits(presentation.run_compliance_scan(products, terms))
+    for line in hits:
+        _emit(line, sys.stderr)
+    if hits:
+        return _fail("合规门禁：%d 处命中（词表来自冻结配置）" % len(hits),
+                     EXIT_GATE_FAILED)
+
+    link_hits = report_mod.scan_external_links(products["report.html"])
+    for hit in link_hits:
+        _emit("report.html:%d:外链形态 %r" % (hit["line"], hit["pattern"]), sys.stderr)
+    if link_hits:
+        return _fail("零外链门禁：%d 处命中" % len(link_hits), EXIT_GATE_FAILED)
+
+    out_dir = getattr(args, "out_dir", None)
+    if out_dir:
+        out_path = paths.resolve_out_dir(out_dir)
+    else:
+        out_path = paths.snapshots_dir(data_dir, config=config) / (
+            "q" + period.lower())
+    # 中间产物与三份报告写同一目录（K1：一律 serialize 单点写盘）。
+    serialize.write_json(out_path / "diff.json", diff_result)
+    serialize.write_json(out_path / "managers.json", managers_result)
+    serialize.write_json(out_path / "scale.json", scale_result)
+    for name, text in sorted(products.items()):
+        serialize.write_text(out_path / name, text)
+
+    if getattr(args, "json", False):
+        _emit(_json_text({
+            "schema": report_mod.REPORT_JSON_SCHEMA,
+            "report_period": period,
+            "as_of": as_of,
+            "out_dir": str(out_path),
+            "files": sorted(products) + ["diff.json", "managers.json", "scale.json"],
+            "compliance": {"scanned": True, "hits": []},
+            "totals": model["totals"],
+        }))
+        return EXIT_OK
+
+    _emit("报告期：%s（%s ~ %s）  as_of：%s" % (
+        period, window_info["period_start"], window_info["period_end"], as_of))
+    _emit("产物目录：%s" % out_path)
+    _emit("合规检查：0 命中（词表来自冻结配置）。")
+    totals = model["totals"]
+    _emit("汇总：基金 %d 只；已披露 %d / 待披露 %d / 无数据 %d" % (
+        totals["funds"], totals["disclosed"], totals["pending"], totals["no_data"]))
+    return EXIT_OK
+
+
 def cmd_selftest(args):
     try:
         data_dir, config, store_file = _resolve(args)
@@ -632,10 +829,10 @@ def main(argv=None):
         "diff": cmd_diff,
         "managers": cmd_managers,
         "scale": cmd_scale,
+        "report": cmd_report,
+        "run": cmd_run,
         "selftest": cmd_selftest,
     }
-    if args.command in STUB_STAGES:
-        return cmd_stub(args)
 
     handler = handlers.get(args.command)
     if handler is None:

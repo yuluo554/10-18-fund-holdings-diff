@@ -134,14 +134,19 @@ def test_missing_data_dir_returns_2(capsys, store_file, tmp_path):
     assert "数据目录不可用" in err
 
 
-@pytest.mark.parametrize("command,stage", [
-    ("report", "M5"), ("run", "M5"),
-])
-def test_stub_commands_return_3(capsys, store_file, command, stage):
-    code, _, err = run(
-        ["--store", store_file, "--data-dir", str(DATA_DIR), command], capsys)
-    assert code == cli.EXIT_NOT_READY
-    assert stage in err
+def test_report_and_run_retired_from_stub(capsys, store_file):
+    """M5：report / run 退役 stub（不再 exit 3；空清单走门禁 1）。"""
+    for command in ("report", "run"):
+        code, _, err = run(
+            ["--store", str(tmp_empty_list(capsys)), "--data-dir", str(DATA_DIR),
+             command], capsys)
+        assert code == cli.EXIT_GATE_FAILED, (command, err)
+        assert "清单为空" in err
+
+
+def tmp_empty_list(capsys):
+    import tempfile, os
+    return os.path.join(tempfile.mkdtemp(), "empty.json")
 
 
 def test_unknown_command_returns_2():

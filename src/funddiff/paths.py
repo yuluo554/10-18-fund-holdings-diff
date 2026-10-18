@@ -73,3 +73,11 @@ def snapshots_dir(data_dir=None, config=None, cwd=None):
     relative = config["paths"]["snapshots_dir"] if config else "snapshots"
     base = Path(cwd) if cwd else Path.cwd()
     return base / relative
+
+
+def resolve_out_dir(explicit=None, cwd=None, default_relative="out"):
+    """报告产物目录：显式 --out-dir 优先，否则配置 out_dir（相对当前工作目录）。"""
+    if explicit:
+        return Path(explicit)
+    base = Path(cwd) if cwd else Path.cwd()
+    return base / default_relative
