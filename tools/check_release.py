@@ -57,20 +57,23 @@ REQUIRED_SDIST_PREFIXES = (
 # 署名机器名出现在路径里、明显的凭据形态。
 # 精度很重要：留档里会**记录扫描用的模式串**（例如 `C:\\Users\|...|ASUS`），
 # 那种"模式串文档"不是泄漏，不能被打红——所以每条都要求带真实路径段。
-# 每条规则自带一个"必须抓得住"的样例，由 SANITIZE_RULES_LIVE 检查它没被改松。
+#
+# 自扫豁免：本文件自己的**正则与样例**天然长得像目标（这正是"守门人"的宿命）。
+# 处理方式与 tests/test_sentinels.py 同源——把敏感字面拆成运行时拼接，
+# 让源文件里不出现完整形态；样例则从**片段拼装**，不在源码里留真路径。
 SANITIZE_RULES = (
-    (re.compile(r"[A-Za-z]:\\+Users\\+[A-Za-z0-9._-]+"), "Windows 用户目录绝对路径",
-     "见 C:\\Users\\alice\\Desktop\\x.py"),
-    (re.compile(r"[A-Za-z]:/+Users/+[A-Za-z0-9._-]+"), "Windows 用户目录绝对路径（正斜杠）",
-     "见 C:/Users/alice/Desktop/x.py"),
-    (re.compile(r"[A-Za-z]:\\+[Pp]rogram[A-Za-z]*\\+[A-Za-z0-9._-]+"), "本机程序目录绝对路径",
-     "见 D:\\programs\\zcode\\bin"),
-    (re.compile(r"/home/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+"), "Linux 家目录绝对路径",
-     "见 /home/alice/work/x.py"),
-    (re.compile(r"(?:Users|home)[\\/]+ASUS(?:[\\/]|$)"), "本机机器名出现在绝对路径里",
-     "见 C:\\Users\\ASUS\\x.py"),
-    (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"), "私钥",
-     "-----BEGIN RSA PRIVATE KEY-----"),
+    (re.compile(r"[A-Za-z]:\\+Us" + r"ers\\+[A-Za-z0-9._-]+"), "Windows 用户目录绝对路径",
+     "见 " + "C:\\Us" + "ers\\alice\\Desktop\\x.py"),
+    (re.compile(r"[A-Za-z]:/+Us" + r"ers/+[A-Za-z0-9._-]+"), "Windows 用户目录绝对路径（正斜杠）",
+     "见 " + "C:/Us" + "ers/alice/Desktop/x.py"),
+    (re.compile(r"[A-Za-z]:\\+[Pp]rog" + r"ram[A-Za-z]*\\+[A-Za-z0-9._-]+"), "本机程序目录绝对路径",
+     "见 " + "D:\\pro" + "grams\\zcode\\bin"),
+    (re.compile(r"/ho" + r"me/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+"), "Linux 家目录绝对路径",
+     "见 " + "/ho" + "me/alice/work/x.py"),
+    (re.compile(r"(?:Us" + r"ers|ho" + r"me)[\\/]+AS" + r"US(?:[\\/]|$)"), "本机机器名出现在绝对路径里",
+     "见 " + "C:\\Us" + "ers\\AS" + "US\\x.py"),
+    (re.compile(r"-----BEGIN [A-Z ]*PRIV" + r"ATE KEY-----"), "私钥",
+     "-----BEGIN RSA " + "PRIV" + "ATE KEY-----"),
     (re.compile(r"\bghp_[A-Za-z0-9]{20,}"), "GitHub token",
      "ghp_" + "a" * 24),
     (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "AWS access key",
