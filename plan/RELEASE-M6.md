@@ -65,3 +65,37 @@
   - `py -3.8` pytest：219 passed；`py -3.12` pytest：219 passed
   - `tools/ci_smoke.py`：PASS（0 failure）
 - 复核后临时目录已清理；本地附件副本留 `dist-release/`（gitignore，不入仓）。
+
+### 2.4 「解包树里真跑」的可粘贴命令（v0.1.1 起，CI 之外可复跑）
+
+`python -m build` 的源码包（`dist/funddiff-<ver>.tar.gz`）与 Release 的手工包是**两条通路**：
+前者由 setuptools 依 `MANIFEST.in` 打，后者是 `git archive` 树。两者都必须自足。复跑：
+
+```bash
+# 1) 从仓库打 sdist（产物落 %TEMP%，不污染仓库）
+cd D:/ProgramData/zcode/10-18-fund-holdings-diff
+py -3.12 -m build --sdist --outdir "$TEMP/fd-verify-dist"
+
+# 2) 解包到中立目录 + 全新 venv
+rm -rf "$TEMP/fd-verify-tree" && mkdir -p "$TEMP/fd-verify-tree"
+tar -xzf "$TEMP/fd-verify-dist/funddiff-0.1.1.tar.gz" -C "$TEMP/fd-verify-tree"
+cd "$TEMP/fd-verify-tree/funddiff-0.1.1"
+py -3.12 -m venv .venv
+.venv/Scripts/python.exe -m pip install -e ".[dev]"
+
+# 3) 跑测试与全部门
+.venv/Scripts/python.exe -m pytest                        # 期望：与仓库同一收集数全绿
+.venv/Scripts/python.exe -m funddiff selftest              # 期望：10 项全 PASS
+.venv/Scripts/python.exe tools/freeze_config.py --check    # 期望：PASS
+.venv/Scripts/python.exe tools/gen_fixtures.py --check     # 期望：PASS
+.venv/Scripts/python.exe tools/ci_smoke.py                 # 期望：PASS (0 failure(s))
+```
+
+**为什么这条命令现在才成立**：`MANIFEST.in` 原本缺 `recursive-include tests *.py`，
+sdist 里没有 `tests/conftest.py`——解包树跑 pytest 会因 `funddiff` 不可导入而失败。
+该行已在 v0.1.1 前补上（见 `update/03-执行记录.md` D6）；同一改动也让
+`tools/check_release.py` 的 `SDIST_SHAPE` 能守住这条。
+
+Release 附件那条通路（`git archive` + `gzip -9n`）由 `tools/check_release.py`（release 模式）覆盖，
+不需要人手复跑：`ASSET_TREE_MATCHES_TAG` 逐字节比对附件解包树与 tag 树。
+

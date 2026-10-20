@@ -1,3 +1,4 @@
+import argparse
 import json
 import pathlib
 
@@ -153,6 +154,41 @@ def test_unknown_command_returns_2():
     with pytest.raises(SystemExit) as exc:
         cli.main(["nope"])
     assert exc.value.code == 2
+
+
+# ---------- 退出码 3 的退役（M6 收尾）----------
+# 骨架期的 `3`（"该阶段尚未就绪"）在 M6 随最后一个 stub 一起退役。
+# 下面三条各查一侧：常量没了 / 名字没了 / 帮助面不再提它。
+
+def test_exit_code_3_constant_retired():
+    assert not hasattr(cli, "EXIT_NOT_READY"), "EXIT_NOT_READY 应已随 M6 删除"
+    assert not hasattr(cli, "cmd_stub"), "cmd_stub 应已随 M6 删除"
+
+
+def test_no_subcommand_can_return_3():
+    """命令注册表里每一项都必须有处理器；处理器不得是 stub，也不得返回 3。"""
+    parser = cli.build_parser()
+    subparsers = [action for action in parser._actions
+                  if isinstance(action, argparse._SubParsersAction)]
+    assert subparsers, "CLI 没有注册任何子命令"
+    commands = set(subparsers[0].choices)
+    assert commands == {"watch", "window", "fetch", "diff", "managers",
+                        "scale", "report", "run", "selftest"}
+    for name in sorted(commands):
+        handler = getattr(cli, "cmd_" + name, None)
+        assert callable(handler), "子命令 %s 没有处理器" % name
+        assert handler is not getattr(cli, "cmd_stub", None)
+
+
+def test_help_does_not_advertise_not_ready():
+    parser = cli.build_parser()
+    text = parser.format_help()
+    for sub in parser._actions:
+        if isinstance(sub, argparse._SubParsersAction):
+            for action in sub.choices.values():
+                text += action.format_help()
+    assert "尚未就绪" not in text, "`--help` 仍在宣传退出码 3"
+    assert "退出码 3" not in text
 
 
 def test_selftest_passes_in_repo(capsys, store_file, tmp_path):

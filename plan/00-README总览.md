@@ -59,7 +59,9 @@
 | 2026-10-18 | 运行时**零第三方依赖** | `argparse` / `json` / `urllib` / `decimal` / `hashlib`；安装面最小、代理与证书差异最少、CI 首推即绿概率最高。测试期仅 `pytest`（`.[dev]`），测试面 = 安装面 = README 指令面 |
 | 2026-10-18 | 分发名 / 命令名 **`funddiff`** | 短、可作模块名与命令名；与仓库编号名解耦，编号只留仓库名。入口两条通路（`python -m funddiff` 与 `funddiff`）都要冒烟 |
 | 2026-10-18 | Python 底线 **3.8** | 本机双通道 3.8.8 / 3.12.10 均可实跑；CI 矩阵 windows/ubuntu × 3.8/3.12。代价：禁用 3.9+ 语法（`dict \|`、`list[int]`、`Path.write_text(newline=)`） |
+| 2026-10-20 | **补注：底线改判 `>=3.12`**（v0.1.1） | 3.8 EOL 2024-10-07、3.9 EOL 2025-10-31、3.10 EOL 2026-10-01（endoflife.date，2026-10-20 取）；四处同步：`requires-python` / classifier（收敛为 3.12 一条）/ CI 矩阵 / README 安装段。CI 的 **ubuntu 腿仍钉 `ubuntu-22.04`**，这是主动规避 `ubuntu-latest` 于 2026-10-19 迁 Ubuntu 26 的漂移，不是落后 |
 | 2026-10-18 | 退出码契约 0/1/2/3/4/5 **锁进测试** | `3` = 该阶段尚未就绪，是骨架期的**显式契约**而非故障；随模块落地逐条退役（退役时同步删旧断言 + 补离线冒烟） |
+| 2026-10-20 | **补注：`3` 已在 M6 整项退役**（v0.1.1） | 删除 `EXIT_NOT_READY` / `cmd_stub` / 对未定义 `STUB_STAGES` 的引用；改由 `tests/test_cli.py` 的三条正向断言 + `tests/test_sentinels.py` 的**静态面**哨兵（ast 扫"引用未定义名"）守门。0/1/2/4/5 语义未动 |
 | 2026-10-18 | 骨架期 stub **一律 exit 3，禁止 `return 0` 空壳** | 空壳会让所有门变绿却什么都没做（skill 的编排链空壳反模式）；变异验证已确认"stub 改 0"会打红测试 |
 | 2026-10-18 | 配置包放在仓库 `data/config/` 而非 wheel `package-data` | 配置是可审计数据资产，改配置不该重装。代价：非 editable 安装必须 `--data-dir` 或 `FUNDDIFF_DATA_DIR`——已实测两条通路（缺参数 exit 1/2 且提示明确） |
 | 2026-10-18 | **网络 import 只允许出现在 `funddiff/net/`**（K6） | AST 守门 + 相对导入形态覆盖 + 注入自证；变异验证已红。这样"纯本地零上传"是可静态证明的，而不是口头承诺 |

@@ -27,8 +27,21 @@
 
 ## 当前状态
 
-**M0–M5 已完成，M6（发布）待开工。** 真实可用的有 `watch` / `window` / `fetch` / `diff` / `managers` / `scale` / `report` / `run` / `selftest`
-（M1 起含配置冻结门禁与两季合成快照；M2 起双通道持仓抓取与归一真实可用，M3 起五态 diff 真实可用，M4 起经理变更与规模变动真实可用，产物落 `snapshots/`，不入仓）；其余子命令按契约返回退出码 **3**（该阶段尚未就绪），**不是故障**。
+**M0–M6 全部完成，`v0.1.0` 已发布（2026-10-18）。** 9 个子命令全部交付并可实跑：
+`watch` / `window` / `fetch` / `diff` / `managers` / `scale` / `report` / `run` / `selftest`
+（M1 起含配置冻结门禁与两季合成快照；M2 起双通道持仓抓取与归一真实可用，M3 起五态 diff 真实可用，
+M4 起经理变更与规模变动真实可用，M5 起季报三产物 + 合规硬门禁，产物落 `snapshots/`，不入仓）。
+骨架期的退出码 **3**（"该阶段尚未就绪"）已随 M6 退役，**没有任何命令会返回它**。
+
+- **已发布版本**：`v0.1.0`（2026-10-18）
+  — [tag](https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.0)
+  · [Release](https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.0) 附
+  `funddiff-0.1.0.tar.gz`（170077 B，sha256 `7b972bf2…fce7b5`）+ `SHA256SUMS`，真下载 `sha256sum -c` 通过，
+  解包树与 `git archive v0.1.0` 展开树 `diff -r` 为空
+- **`main` 上的版本号**：`v0.1.1`（下一版，待发布；发版时本段与 `tests/test_readme_gate.py` 的状态断言一起更新）
+- **CI**：[`39104245798`](https://github.com/yuluo554/10-18-fund-holdings-diff/actions/runs/39104245798)
+  （2026-10-18T06:30:05Z）success，矩阵 `ubuntu-22.04` / `windows-latest` —— 截至该 run 共 4 个事件 4 个 run 全部 success；
+  ubuntu 腿**按版本钉住**（不用 `ubuntu-latest`），避免镜像漂移。本次 floor 收紧到 3.12 后的首个 run 由下一次推送产生
 
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
@@ -38,15 +51,13 @@
 | M3 | 五态 Q/Q diff + 双口径 + 冲突清单 + 双季溯源 | ✅ |
 | M4 | 经理变更 + 规模变动 | ✅ |
 | M5 | 季报三产物 + 合规硬门禁 | ✅（2026-10-18） |
-| M6 | GitHub 发布 | ⬜ |
-
-> CI：仓库尚无远端，**尚未跑过 CI**。当前所有验证均为"本地等价校验"，待首推验证。
+| M6 | GitHub 发布 | ✅（2026-10-18，tag `v0.1.0` + Release 两附件） |
 
 ---
 
 ## 安装
 
-需要 **Python ≥ 3.8**（3.8 与 3.12 均实测）。运行时**零第三方依赖**。
+需要 **Python ≥ 3.12**（3.12 为最低支持版本；3.8/3.9/3.10 均已 EOL，不再支持）。运行时**零第三方依赖**。
 
 ```bash
 git clone <repo-url> 10-18-fund-holdings-diff
@@ -127,7 +138,8 @@ funddiff --version
 全局参数：`--store PATH`（清单路径）、`--data-dir PATH`（数据目录）。
 
 **退出码总表**：`0` 成功 / 谓词成立 · `1` 门禁不通过 · `2` 用法或输入错误 ·
-`3` 该阶段尚未就绪（骨架期显式契约）· `4` 上游/网络不可用 · `5` 内部一致性错误。
+`3` **已退役**（骨架期"该阶段尚未就绪"的契约，随 M6 删除；没有任何命令会返回它）·
+`4` 上游/网络不可用 · `5` 内部一致性错误。
 
 ---
 
@@ -146,9 +158,10 @@ tools/       配置冻结、fixtures 生成、CI 冒烟
 ## 开发
 
 ```bash
-py -3.8  -X utf8 -m pytest -q     # 最低支持版本
-py -3.12 -X utf8 -m pytest -q
+py -3.12 -X utf8 -m pytest -q     # 最低支持版本
+py -3.13 -X utf8 -m pytest -q     # 新版本前向兼容（如本机有）
 py -3.12 -X utf8 tools/ci_smoke.py
+py -3.12 -X utf8 tools/check_release.py   # 发布终态门（tag / 附件 / 树同源 / 包形态 / 脱敏）
 ```
 
 `data/config/app.json` 是**冻结配置**：季度窗口、diff 口径与阈值、限频退避、合规词表、

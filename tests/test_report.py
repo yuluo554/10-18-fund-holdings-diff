@@ -354,8 +354,11 @@ class TestExitCodes:
 # ---------- insufficient_data 与空仓不混淆 ----------
 
 class TestInsufficientFunds:
+    # pytest 8 起「class 作用域的 fixture 写成实例方法」是弃用写法，会在汇总行留一条 warning；
+    # 改成 @classmethod 保持同一份 class 级缓存，语义不变（不是为了静音）。
     @pytest.fixture(scope="class")
-    def full_payload(self, tmp_path_factory):
+    @classmethod
+    def full_payload(cls, tmp_path_factory):
         out_dir = tmp_path_factory.mktemp("full")
         store = str(out_dir / "w.json")
         for i in range(1, 9):

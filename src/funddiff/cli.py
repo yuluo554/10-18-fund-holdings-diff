@@ -4,9 +4,11 @@
   0 成功 / 谓词成立
   1 门禁不通过（selftest 失败、合规命中、基准不符）
   2 用法或输入错误
-  3 该阶段尚未就绪（骨架期的显式契约，随模块落地逐条退役）
   4 上游/网络不可用（限频、验证码、登录墙、超时）
   5 内部一致性错误
+
+历史：骨架期曾有 `3`（"该阶段尚未就绪"）。M6 起全部子命令均已落地，该档位连同
+`EXIT_NOT_READY` / `cmd_stub` 一并退役——没有任何命令会返回 3。
 """
 
 import argparse
@@ -18,7 +20,6 @@ from .config import ConfigError, load_config
 EXIT_OK = 0
 EXIT_GATE_FAILED = 1
 EXIT_USAGE = 2
-EXIT_NOT_READY = 3
 EXIT_UPSTREAM = 4
 EXIT_INTERNAL = 5
 
@@ -800,14 +801,6 @@ def cmd_selftest(args):
             "通过" if report["ok"] else "未通过",
             report["failed"], report["skipped"], len(report["checks"])))
     return EXIT_OK if report["ok"] else EXIT_GATE_FAILED
-
-
-def cmd_stub(args):
-    stage = STUB_STAGES.get(args.command, "后续里程碑")
-    return _fail(
-        "`%s` 将在 %s 实现（当前为骨架期，退出码 3 是既定契约）。" % (args.command, stage),
-        EXIT_NOT_READY,
-    )
 
 
 def _json_text(payload):

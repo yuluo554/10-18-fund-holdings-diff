@@ -5,6 +5,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: py${{ matrix.python-version }} / ${{ matrix.os }}
@@ -12,16 +19,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # ubuntu 腿按版本钉住（不用 ubuntu-latest）：2026-10-19 ubuntu-latest 迁到 Ubuntu 26，
+        # 钉版本是主动规避镜像漂移，不是"落后"。
         os: [ubuntu-22.04, windows-latest]
-        python-version: ["3.8", "3.12"]
+        python-version: ["3.12"]
     env:
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -42,7 +51,18 @@ jobs:
       - name: CLI smoke matrix
         run: python tools/ci_smoke.py
 
+      - name: Frozen config / fixtures gates
+        run: |
+          python tools/freeze_config.py --check
+          python tools/gen_fixtures.py --check
+
+      - name: Release gate (metadata mode; 发布物相关项需 dist-release/)
+        run: |
+          python tools/check_release.py --mode metadata
+          python tools/check_release.py --mutation
+
       - name: Verify console script entry point
         run: |
           funddiff --version
           python -m funddiff --version
+

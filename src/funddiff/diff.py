@@ -271,7 +271,7 @@ def build(data_dir, config, codes, period, mode, prev_period=None):
             mode=mode)
         funds.append({
             "fund_code": code,
-            "fund_name": cur_payload.get("fund_name") or fund_name,
+            "fund_name": cur_payload.get("fund_name"),
             "status": fund_result["status"],
             "entries": fund_result["entries"],
             "summary": fund_result["summary"],
