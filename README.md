@@ -27,21 +27,23 @@
 
 ## 当前状态
 
-**M0–M6 全部完成，`v0.1.0` 已发布（2026-10-18）。** 9 个子命令全部交付并可实跑：
+**M0–M6 全部完成，`v0.1.1` 已发布（2026-10-20）。** 9 个子命令全部交付并可实跑：
 `watch` / `window` / `fetch` / `diff` / `managers` / `scale` / `report` / `run` / `selftest`
 （M1 起含配置冻结门禁与两季合成快照；M2 起双通道持仓抓取与归一真实可用，M3 起五态 diff 真实可用，
 M4 起经理变更与规模变动真实可用，M5 起季报三产物 + 合规硬门禁，产物落 `snapshots/`，不入仓）。
 骨架期的退出码 **3**（"该阶段尚未就绪"）已随 M6 退役，**没有任何命令会返回它**。
 
-- **已发布版本**：`v0.1.0`（2026-10-18）
-  — [tag](https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.0)
-  · [Release](https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.0) 附
-  `funddiff-0.1.0.tar.gz`（170077 B，sha256 `7b972bf2…fce7b5`）+ `SHA256SUMS`，真下载 `sha256sum -c` 通过，
-  解包树与 `git archive v0.1.0` 展开树 `diff -r` 为空
-- **`main` 上的版本号**：`v0.1.1`（下一版，待发布；发版时本段与 `tests/test_readme_gate.py` 的状态断言一起更新）
-- **CI**：[`39104245798`](https://github.com/yuluo554/10-18-fund-holdings-diff/actions/runs/39104245798)
-  （2026-10-18T06:30:05Z）success，矩阵 `ubuntu-22.04` / `windows-latest` —— 截至该 run 共 4 个事件 4 个 run 全部 success；
-  ubuntu 腿**按版本钉住**（不用 `ubuntu-latest`），避免镜像漂移。本次 floor 收紧到 3.12 后的首个 run 由下一次推送产生
+- **已发布版本**：`v0.1.1`（2026-10-20）
+  — [tag](https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.1)
+  · [Release](https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.1) 附
+  `funddiff-0.1.1.tar.gz` + `SHA256SUMS`。附件由 `git archive v0.1.1` + `gzip -9n` 生成，
+  **与该 tag 树逐字节同源**；sha256 记在 Release 说明与随附的 `SHA256SUMS` 里
+  （附件由 tag 树产出，所以不能把自身的 sha256 写进 tag 树——那会自指）
+- **`v0.1.0`（2026-10-18）** 保留在
+  [旧 Release](https://github.com/yuluo554/10-18-fund-holdings-diff/releases/tag/v0.1.0)（tag 与两个附件均未改动）
+- **CI**：[`39415465252`](https://github.com/yuluo554/10-18-fund-holdings-diff/actions/runs/39415465252)
+  （2026-10-20T11:30:42Z）success，矩阵 `ubuntu-22.04` / `windows-latest` × Python 3.12，两腿 11 步全绿、**注解 0 条**；
+  ubuntu 腿**按版本钉住**（不用 `ubuntu-latest`），避免镜像漂移
 
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
@@ -51,7 +53,7 @@ M4 起经理变更与规模变动真实可用，M5 起季报三产物 + 合规�
 | M3 | 五态 Q/Q diff + 双口径 + 冲突清单 + 双季溯源 | ✅ |
 | M4 | 经理变更 + 规模变动 | ✅ |
 | M5 | 季报三产物 + 合规硬门禁 | ✅（2026-10-18） |
-| M6 | GitHub 发布 | ✅（2026-10-18，tag `v0.1.0` + Release 两附件） |
+| M6 | GitHub 发布 | ✅（2026-10-18 起 `v0.1.0`；`v0.1.1` 于 2026-10-20 发布） |
 
 ---
 

@@ -3,12 +3,18 @@
 > 三件套留档（plan/00 §四、plan/06 §五口径）。**分栏纪律**：发布前事实（tag 之前已存在、随 tag 落盘）与发布后事实（tag 之后产生：CI run id / 附件 sha256 / 下载复核）严格分栏；发布后事实以追加提交补记，不改写发布前栏。
 
 **仓库**：https://github.com/yuluo554/10-18-fund-holdings-diff（公开，署名 `yuluo554`）
-**tag**：`v0.1.0`（版本以实际能力定：0.1.0 而非 1.0.0，见 plan/06 §五判据；四处一致：`pyproject.toml` / `src/funddiff/__init__.py` / tag 名 / Release 名）
-**发布物**：手工源码包 `funddiff-0.1.0.tar.gz`（`git archive` + `gzip -9n`）+ `SHA256SUMS`
+**当前 tag**：`v0.1.1`（2026-10-20；版本以实际能力定，见 plan/06 §五判据；四处一致：`pyproject.toml` / `src/funddiff/__init__.py` / tag 名 / Release 名）
+**当前发布物**：手工源码包 `funddiff-0.1.1.tar.gz`（`git archive` + `gzip -9n`）+ `SHA256SUMS`
+
+> 下表记录历次发布的形态。**v0.1.1 起改为"零滞后发布"**：tag 直接指向 `main` 的发布提交，
+> 不再追加"发版后回写"提交。因此 `v0.1.1` 的附件 sha256 / CI run id **不在本文件内**
+> （写进来会让 tag 树包含自身产物的哈希 = 自指，且必然把 tag 推离 HEAD）。
+> 它们记在 **Release 说明**、**annotated tag 消息** 与随附件发出的 `SHA256SUMS` 里；
+> 机器校验由 `tools/check_release.py` 承担（`ASSET_DIGEST_MATCHES_SUMS` / `ASSET_TREE_MATCHES_TAG`）。
 
 ---
 
-## 一、发布前事实（tag 前落盘，随 tag 进 tag 树）
+## v0.1.0 · 发布前事实（tag 前落盘，随 tag 进 tag 树）
 
 ### 1.1 脱敏四步 + 提交面扫描（2026-10-18）
 
@@ -43,7 +49,7 @@
 
 ---
 
-## 二、发布后事实（tag 后追加，追加提交补记）
+## v0.1.0 · 发布后事实（tag 后追加，追加提交补记）
 
 ### 2.1 tag
 
@@ -98,4 +104,57 @@ sdist 里没有 `tests/conftest.py`——解包树跑 pytest 会因 `funddiff` �
 
 Release 附件那条通路（`git archive` + `gzip -9n`）由 `tools/check_release.py`（release 模式）覆盖，
 不需要人手复跑：`ASSET_TREE_MATCHES_TAG` 逐字节比对附件解包树与 tag 树。
+
+---
+
+## v0.1.1 · 发布前事实（tag 前落盘，随 tag 进 tag 树）
+
+> 本节只写**在 tag 之前就已确定**的事实。附件 sha256 / CI run id 这些**由本 tag 树自身产生**的读数
+> 不写在这里（自指 + 会把 tag 推离 HEAD），改记在 Release 说明与 tag 消息里。
+
+### 3.1 版本与四处一致
+
+| 位置 | 值 |
+|---|---|
+| `pyproject.toml` `version` | `0.1.1` |
+| `src/funddiff/__init__.py` `__version__` | `0.1.1` |
+| tag 名 | `v0.1.1` |
+| Release 名 | `funddiff v0.1.1` |
+
+`python -m funddiff --version` → `funddiff 0.1.1`。
+
+### 3.2 发布物形态（不变量）
+
+- 附件两件：`funddiff-0.1.1.tar.gz`（`git archive v0.1.1` + `gzip -9n`）、`SHA256SUMS`
+- 树条目数与 `git archive v0.1.1` 完全一致（`ASSET_TREE_MATCHES_TAG` 逐字节判）
+- `SHA256SUMS` 格式：`<sha256>  funddiff-0.1.1.tar.gz`（两空格、无 `*`、单 LF 结尾）
+
+### 3.3 本轮迭代内容（相对 v0.1.0）
+
+- README 首屏与里程碑表改为与事实一致，并补 6 条可分别变红的状态面断言
+- 退出码 **3** 整项退役（`EXIT_NOT_READY` / `cmd_stub` / 未定义的 `STUB_STAGES` 引用）；
+  `test_sentinels.py` 新增静态面哨兵（ast 作用域扫描），上线即扫出 `diff.py` 第二处同类死码并修掉
+- Python floor `3.8 → 3.12`（四处同步；CI 的 `ubuntu-22.04` 钉法保留）
+- 打包元数据改 SPDX（`license = "MIT"` + `license-files`），删 `License::` classifier，`setuptools>=77`
+- `actions/checkout` / `setup-python` 升 v7，保留 `fetch-depth: 0`；CI 注解由 4 条降到 **0 条**
+- `MANIFEST.in` 补 `recursive-include tests *.py`（此前 sdist 缺 `conftest.py`，解包树跑不了 pytest）
+- 新增 `tools/check_release.py`：15 条检查 + 15 个变异探针（release / metadata 两种模式）
+- pytest 汇总行去掉那条 class-scoped fixture 弃用 warning（改写法，未用 `-W ignore`）
+
+### 3.4 复验读数（tag 之前本地实跑，可复跑）
+
+```
+python -m pytest                                   → 235 passed（0 warning）
+python -m funddiff selftest                        → 10 项全 PASS
+python tools/freeze_config.py --check              → PASS
+python tools/gen_fixtures.py --check               → PASS（重生成逐字节一致）
+python tools/ci_smoke.py                           → PASS (0 failure(s))
+python tools/check_release.py --mutation           → 15/15 probe(s) red exactly once
+python -m build --wheel --sdist                    → 0 warning（License-Expression: MIT）
+mutate_diff / mutate_events / mutate_report        → 各 5 处变异全被检出
+```
+
+CI（本轮 floor/actions 改动后）：run `39415465252` / `2026-10-20T11:30:42Z`，
+`ubuntu-22.04` 与 `windows-latest` 两腿 11 步全绿，**注解 0 条**。
+
 

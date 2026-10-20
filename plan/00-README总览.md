@@ -115,7 +115,7 @@
 | **M3 diff** | 五态状态机、provider / computed 双口径、冲突清单、双季溯源、确定性排序、失败季 insufficient_data | 五态逐条对齐真值；双口径双跑；冲突样本可解释；同输入双跑字节一致；变异验证 5 处全红 | ✅ **2026-10-18**（双解释器 165 项全绿；ci_smoke diff 真实跑；CI 未跑：无远端） |
 | **M4 经理规模** | `jjjl` 经理变动解析、"本季内变更"判定、`gmbd` 规模四条口径、缺失与 0 区分 | 三类经理样本标注正确；缺失 ≠ 0；区间来自配置 | ✅ **2026-10-18**（双解释器 193 项全绿；managers/scale 真实跑 + 退出码矩阵；5 处变异全红；CI 未跑：无远端） |
 | **M5 报告** | Markdown + 单文件 HTML + `report_data.json`；按基金分组；与上期报告对比；合规词表硬门禁；固定页脚 | 断网生成 exit 0；0 外链；双跑字节一致；违规注入非零退出并定位 | ✅ **2026-10-18**（双解释器 219 项全绿；三产物同源双跑字节一致；5 处变异全红；CI 未跑：无远端） |
-| **M6 发布** | 发布 **GitHub 公开仓库**（署名 `yuluo554`） | **三件套：① git tag ② GitHub Release 附产物（≥1 个手工上传附件；本地留副本 + sha256 可复验）③ 发布留档（`plan/RELEASE-M6.md`，须在 tag 之前进 tag 树）**；缺任一项即未达成。另：干净环境 clone 按 README 跑通；提交面脱敏 | ✅ **2026-10-18**（tag `v0.1.0`；Release 附 `funddiff-0.1.0.tar.gz` + `SHA256SUMS`，真下载 sha256 OK、解包树与 tag 树 diff -r 为空；RELEASE-M6.md commit `6fec541` 早于 tag；CI 首跑 run 39103686550 四 job ✓；脱敏扫描 0 命中） |
+| **M6 发布** | 发布 **GitHub 公开仓库**（署名 `yuluo554`） | **三件套：① git tag ② GitHub Release 附产物（≥1 个手工上传附件；本地留副本 + sha256 可复验）③ 发布留档（`plan/RELEASE-M6.md`，须在 tag 之前进 tag 树）**；缺任一项即未达成。另：干净环境 clone 按 README 跑通；提交面脱敏 | ✅ **2026-10-18**（tag `v0.1.0`；Release 附 `funddiff-0.1.0.tar.gz` + `SHA256SUMS`，真下载 sha256 OK、解包树与 tag 树 diff -r 为空；RELEASE-M6.md commit `6fec541` 早于 tag；CI 首跑 run 39103686550 四 job ✓；脱敏扫描 0 命中）<br>✅ **2026-10-20**（tag `v0.1.1`，**零滞后**：tag 直接指向 `main` 的发布提交，不再追加回写提交；留档 §三 只写 tag 前可确定的不变量，附件 sha256 / CI run id 记在 Release 说明与 tag 消息里——写进 tag 树会自指；`tools/check_release.py` 15 条检查 + 15 探针守门） |
 
 ## 五、纪律
 

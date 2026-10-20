@@ -115,11 +115,23 @@ def status_section():
 
 
 def test_readme_status_section_names_published_version():
-    """状态段必须同时写出"已发布"与版本号 v0.1.0；只改这一段任一要素即红。"""
+    """状态段必须同时写出"已发布"与当前发布版本；只改这一段任一要素即红。"""
     section = status_section()
     assert "已发布" in section, "状态段没有'已发布'字样"
-    assert "v0.1.0" in section, "状态段没有已发布版本号 v0.1.0"
-    assert "releases/tag/v0.1.0" in section, "状态段没有 Release 链接"
+    assert "v0.1.1" in section, "状态段没有已发布版本号 v0.1.1"
+    assert "releases/tag/v0.1.1" in section, "状态段没有 v0.1.1 的 Release 链接"
+
+
+def test_readme_status_section_declares_asset_provenance():
+    """状态段必须写明附件的来源形态与"sha256 不写进 tag 树"的原因。
+
+    v0.1.0 那轮的回写教训：按附件生成机制，`git archive <tag>` 产出的包**不能**
+    在 tag 树里登记自身的 sha256（自指）。这条把该约束钉成可见的文字，
+    免得下一次又写进 tag 树再被门打红。
+    """
+    section = status_section()
+    assert "git archive" in section, "状态段未写明附件由 git archive 产出"
+    assert "SHA256SUMS" in section, "状态段未提到 SHA256SUMS"
 
 
 def test_readme_does_not_claim_m6_pending():
